@@ -4,7 +4,7 @@
     "Name": "QuickSSH",
     "Description": "Enhanced SSH connection plugin with TAB auto-completion, SSH config support, and improved shell handling",
     "Author": "Vaso73",
-    "Version": "1.0.11",
+    "Version": "1.0.12",
     "Language": "csharp",
     "Website": "https://github.com/Vaso73/Flow.Launcher.Plugin.QuickSSH",
     "IcoPath": "Images\\app.png",
