@@ -17,6 +17,13 @@ namespace Flow.Launcher.Plugin.QuickSSH
         };
 
         /// <summary>
+        /// Score step used to separate adjacent top-level commands.
+        /// A gap of this size ensures Flow Launcher's usage-history bonus
+        /// (typically &lt; 1 000 points) cannot reorder the top-level menu.
+        /// </summary>
+        private const int TopLevelScoreStep = 10000;
+
+        /// <summary>
         /// Sub-commands of "profiles" that appear in suggestions after "profiles ".
         /// </summary>
         private static readonly string[] ProfilesSubCommands = new[]
@@ -48,9 +55,12 @@ namespace Flow.Launcher.Plugin.QuickSSH
             if (string.IsNullOrEmpty(trimmed))
             {
                 // Show all visible top-level commands in defined order.
-                // Assign descending scores so Flow Launcher respects the intended order
-                // regardless of its own secondary-sort logic (insertion order alone is
-                // not guaranteed when all scores are equal).
+                // Assign descending scores with a gap of TopLevelScoreStep (10 000) so that
+                // Flow Launcher's usage-history bonus — which can add hundreds to ~1 000 points
+                // for frequently-selected results — can never bridge the gap between adjacent
+                // commands and reorder them at runtime.
+                // A gap of only 1 (e.g. 4/3/2/1) is not safe: a user who has previously
+                // selected "config" more than "shell" would see config boosted above shell.
                 for (int i = 0; i < VisibleCommands.Length; i++)
                 {
                     var cmd = VisibleCommands[i];
@@ -60,7 +70,7 @@ namespace Flow.Launcher.Plugin.QuickSSH
                         Title = cmd,
                         SubTitle = GetCommandDescription(cmd),
                         IcoPath = iconPath,
-                        Score = VisibleCommands.Length - i,
+                        Score = (VisibleCommands.Length - i) * TopLevelScoreStep,
                         Action = _ =>
                         {
                             api?.ChangeQuery(autoText, true);
