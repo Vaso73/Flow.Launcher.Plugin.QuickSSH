@@ -167,6 +167,29 @@ namespace Flow.Launcher.Plugin.QuickSSH.Tests
             Assert.Equal(new[] { "profiles", "shell", "config", "help" }, ordered);
         }
 
+        [Fact]
+        public void GetSuggestions_EmptyInput_AdjacentScoreGapsExceedFlowLauncherHistoryBonus()
+        {
+            // Flow Launcher's usage-history bonus can add up to ~1 000 points for a
+            // frequently-selected result.  Adjacent top-level commands must be spaced
+            // further apart than that so no bonus can reorder them at runtime.
+            // A gap of > 1 000 is considered safe based on observed Flow Launcher
+            // scoring — this mirrors the "> 500" invariant used for submenu action rows.
+            const int safeGap = 1000;
+
+            var results = AutoCompleter.GetSuggestions("ssh", "", null, "icon.png");
+            var sorted = results.OrderByDescending(r => r.Score).ToList();
+
+            for (int i = 0; i < sorted.Count - 1; i++)
+            {
+                int gap = sorted[i].Score - sorted[i + 1].Score;
+                Assert.True(gap > safeGap,
+                    $"Score gap between '{sorted[i].Title}' ({sorted[i].Score}) and " +
+                    $"'{sorted[i + 1].Title}' ({sorted[i + 1].Score}) must exceed {safeGap} " +
+                    $"to be safe from Flow Launcher usage-history bonuses (actual gap: {gap}).");
+            }
+        }
+
         // ── Partial "profiles <prefix>" sub-command suggestions ───────────────────
 
         [Theory]
