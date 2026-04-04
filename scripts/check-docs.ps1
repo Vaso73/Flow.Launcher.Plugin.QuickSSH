@@ -66,7 +66,7 @@ if ($userFacingChangedFiles -contains "plugin.json") {
         $isVersionOnly = ($baseHash.Count -eq $headHash.Count)
         if ($isVersionOnly) {
             foreach ($key in $baseHash.Keys) {
-                if (-not $headHash.ContainsKey($key) -or "$($headHash[$key])" -ne "$($baseHash[$key])") {
+                if (-not $headHash.ContainsKey($key) -or ($headHash[$key] | ConvertTo-Json -Compress -Depth 10) -ne ($baseHash[$key] | ConvertTo-Json -Compress -Depth 10)) {
                     $isVersionOnly = $false
                     break
                 }
