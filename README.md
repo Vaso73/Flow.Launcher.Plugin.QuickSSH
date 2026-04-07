@@ -667,17 +667,22 @@ To make QuickSSH available via `pm install QuickSSH` in Flow Launcher:
      "Name": "QuickSSH",
      "Description": "Enhanced SSH/SCP connection plugin with query autocomplete, structured profiles, SSH config support, and custom shell handling",
      "Author": "Vaso73",
-     "Version": "3.4.0",
+     "Version": "3.5.0",
      "Language": "csharp",
-     "MinFlowLauncherVersion": "1.19.0",
+     "MinimumAppVersion": "1.19.0",
      "Website": "https://github.com/Vaso73/Flow.Launcher.Plugin.QuickSSH",
-     "UrlSourceCode": "https://github.com/Vaso73/Flow.Launcher.Plugin.QuickSSH",
-     "UrlDownload": "https://github.com/Vaso73/Flow.Launcher.Plugin.QuickSSH/releases/latest/download/QuickSSH.zip",
-     "IcoPath": "https://raw.githubusercontent.com/Vaso73/Flow.Launcher.Plugin.QuickSSH/main/Images/app.png"
+     "UrlSourceCode": "https://github.com/Vaso73/Flow.Launcher.Plugin.QuickSSH/tree/main",
+     "UrlDownload": "https://github.com/Vaso73/Flow.Launcher.Plugin.QuickSSH/releases/download/v3.5.0/QuickSSH.zip",
+     "IcoPath": "https://cdn.jsdelivr.net/gh/Vaso73/Flow.Launcher.Plugin.QuickSSH@main/Images/app.png"
    }
    ```
 
 4. **Open a Pull Request** — submit the PR to `Flow-Launcher/Flow.Launcher.PluginsManifest`. Once merged the plugin becomes available in the Flow Launcher store.
+
+   > **Future updates are automatic.** After the initial manifest PR is merged, the PluginsManifest CI checks for new GitHub releases every three hours and auto-updates `Version` and `UrlDownload` in the manifest. Future QuickSSH releases are picked up automatically as long as:
+   > - `plugin.json` version is bumped in the release PR
+   > - GitHub Actions publishes a release with the tag `v{version}` and the asset named exactly `QuickSSH.zip`
+   > - No manual manifest PR is needed for version bumps
 
 ## Contributing
 
@@ -706,8 +711,8 @@ Contributions are welcome! Here is the typical workflow:
    - Validates that exactly one release label is present
    - Reads the current version from `plugin.json` on `main`
    - Builds `QuickSSH.zip`
-   - Creates a matching git tag and GitHub Release
-6. Update the Plugin Manifest entry in `Flow-Launcher/Flow.Launcher.PluginsManifest` if needed.
+   - Creates a matching git tag and GitHub Release with `QuickSSH.zip` as the release asset
+6. The PluginsManifest CI picks up the new release automatically within ~3 hours — no manual manifest PR is needed for version bumps after the initial store submission.
 
 `plugin.json` is the **single source of truth** for the plugin version. The version must already be correct in the PR — the workflow does **not** modify `main` after merge. This is required because `main` is a protected branch and post-merge pushes from CI would be rejected.
 
