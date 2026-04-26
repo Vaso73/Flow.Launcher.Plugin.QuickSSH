@@ -43,3 +43,6 @@ Thumbs.db
 
 # Temporary files
 *.tmp
+
+# Build artifacts
+artifacts/
