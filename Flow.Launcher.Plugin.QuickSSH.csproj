@@ -2,6 +2,7 @@
   <PropertyGroup>
     <TargetFramework>net9.0-windows</TargetFramework>
     <UseWPF>true</UseWPF>
+    <EnableWindowsTargeting>true</EnableWindowsTargeting>
     <AssemblyName>Flow.Launcher.Plugin.QuickSSH</AssemblyName>
     <PackageId>Flow.Launcher.Plugin.QuickSSH</PackageId>
     <Authors>Vaso73</Authors>
