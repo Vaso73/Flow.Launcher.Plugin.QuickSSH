@@ -508,9 +508,21 @@ Click any shell in the list to **select** it. All SSH connections will then laun
 
 ## Data Storage
 
+QuickSSH stores its main database in Flow Launcher's per-plugin settings directory.
+In portable Flow Launcher builds this stays inside the portable `UserData` tree:
+
+```
+<FlowLauncherPortable>\UserData\Settings\Plugins\Flow.Launcher.Plugin.QuickSSH\profiles.json
+```
+
+On first startup after upgrading, an existing legacy `~/.ssh/profiles.json` file is copied
+to the new location only when the new database does not already exist. The legacy file is
+left untouched.
+
 | File | Purpose |
 |------|---------|
-| `~/.ssh/profiles.json` | Main profile, shell, and key database (v2 structured JSON) |
+| `<Flow Launcher plugin settings>\profiles.json` | Main profile, shell, and key database (v2 structured JSON) |
+| `~/.ssh/profiles.json` | Legacy database path, copied once during upgrade when needed |
 | `%APPDATA%\FlowLauncher\Plugins\QuickSSH\data\*.sshconfig` | Human-readable export/import files |
 | `%APPDATA%\FlowLauncher\Plugins\QuickSSH\data\*.json` | Legacy import files (v1, still readable) |
 
