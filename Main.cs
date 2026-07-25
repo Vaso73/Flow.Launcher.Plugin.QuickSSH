@@ -133,15 +133,12 @@ namespace Flow.Launcher.Plugin.QuickSSH
         {
             _pluginContext = context;
 
-            var sshDir = Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
-                ".ssh");
-
-            _databasePath = Path.Combine(sshDir, "profiles.json");
             _dataDir = Path.Combine(context.CurrentPluginMetadata.PluginDirectory, "data");
 
             try
             {
+                _databasePath = ProfileStorage.PrepareProfilesPath(
+                    context.CurrentPluginMetadata.PluginSettingsDirectoryPath);
                 _profileManager = new ProfileManager(_databasePath);
             }
             catch
