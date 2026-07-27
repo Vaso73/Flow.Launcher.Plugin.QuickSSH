@@ -310,13 +310,13 @@ namespace Flow.Launcher.Plugin.QuickSSH.Tests
         {
             var path = GetTmpPath();
             var pm = new ProfileManager(path);
-            Assert.Equal(0, pm.UserData.Profiles.Count);
+            Assert.Empty(pm.UserData.Profiles);
 
             pm.UserData.Profiles["x"] = new SshProfile { HostName = "x.host" };
-            Assert.Equal(1, pm.UserData.Profiles.Count);
+            Assert.Single(pm.UserData.Profiles);
 
             pm.UserData.Profiles.Remove("x");
-            Assert.Equal(0, pm.UserData.Profiles.Count);
+            Assert.Empty(pm.UserData.Profiles);
         }
     }
 }

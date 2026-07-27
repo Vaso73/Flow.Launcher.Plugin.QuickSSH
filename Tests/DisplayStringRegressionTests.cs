@@ -11,7 +11,7 @@ namespace Flow.Launcher.Plugin.QuickSSH.Tests
     /// </summary>
     public class DisplayStringRegressionTests
     {
-        private static string GetMainCsSource()
+        private static string? GetMainCsSource()
         {
             var mainCsPath = Path.Combine(
                 AppContext.BaseDirectory,

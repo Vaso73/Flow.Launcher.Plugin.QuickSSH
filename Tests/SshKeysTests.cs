@@ -90,6 +90,7 @@ namespace Flow.Launcher.Plugin.QuickSSH.Tests
             }";
             var entry = Newtonsoft.Json.JsonConvert.DeserializeObject<SshKeyEntry>(json);
 
+            Assert.NotNull(entry);
             Assert.Equal(@"C:\Users\me\.ssh\id_ed25519", entry.Path);
             Assert.Equal(@"C:\Users\me\.ssh\id_ed25519.pub", entry.PublicKeyPath);
             Assert.Equal("SHA256:abc123", entry.Fingerprint);
@@ -179,10 +180,10 @@ namespace Flow.Launcher.Plugin.QuickSSH.Tests
         // ── AutoCompleter keys suggestions ────────────────────────────────────────
 
         [Fact]
-        public void GetSuggestions_PartialKe_ReturnsKeys()
+        public void GetSuggestions_PartialKe_DoesNotExposeKeysInSimplifiedRootMenu()
         {
             var results = AutoCompleter.GetSuggestions("ssh", "ke", null, "icon.png");
-            Assert.Contains(results, r => r.Title == "keys");
+            Assert.DoesNotContain(results, r => r.Title == "keys");
         }
 
         [Fact]
@@ -194,6 +195,8 @@ namespace Flow.Launcher.Plugin.QuickSSH.Tests
 
             Assert.Contains("add", titles);
             Assert.Contains("generate", titles);
+            Assert.Contains("install", titles);
+            Assert.Contains("manage", titles);
             Assert.Contains("remove", titles);
             Assert.Contains("rename", titles);
             Assert.Contains("copy-path", titles);
@@ -208,6 +211,8 @@ namespace Flow.Launcher.Plugin.QuickSSH.Tests
         [InlineData("g",      new[] { "generate" })]
         [InlineData("ge",     new[] { "generate" })]
         [InlineData("gen",    new[] { "generate" })]
+        [InlineData("m",      new[] { "manage" })]
+        [InlineData("ma",     new[] { "manage" })]
         [InlineData("r",      new[] { "remove", "rename" })]
         [InlineData("re",     new[] { "remove", "rename" })]
         [InlineData("rem",    new[] { "remove" })]
@@ -222,7 +227,7 @@ namespace Flow.Launcher.Plugin.QuickSSH.Tests
             string partial, string[] expected)
         {
             var results = AutoCompleter.GetSuggestions("ssh", "keys " + partial, null, "icon.png");
-            var allSubCmds = new HashSet<string> { "add", "generate", "remove", "rename", "copy-path", "copy-pub", "scan" };
+            var allSubCmds = new HashSet<string> { "install", "manage", "add", "generate", "remove", "rename", "copy-path", "copy-pub", "scan" };
             var subCommandTitles = results
                 .Select(r => r.Title)
                 .Where(t => allSubCmds.Contains(t))
@@ -270,37 +275,40 @@ namespace Flow.Launcher.Plugin.QuickSSH.Tests
         // ── Keys submenu score invariants ─────────────────────────────────────────
 
         [Fact]
-        public void KeysSubmenu_ManagementRowIsAboveAllActionRows()
+        public void KeysSubmenu_ManagementRowIsAbovePrimaryRows()
         {
-            Assert.True(QuickSsh.ScoreSubMenuManagement > QuickSsh.ScoreKeysActionAdd,
-                "Management row must outrank every keys action row.");
+            Assert.True(QuickSsh.ScoreSubMenuManagement > QuickSsh.ScoreKeysActionInstall,
+                "Management row must outrank the install action row.");
         }
 
         [Fact]
-        public void KeysSubmenu_AllActionRowsAreAboveSavedItems()
+        public void KeysSubmenu_SavedItemsAndInstallAreAboveManage()
         {
-            Assert.True(QuickSsh.ScoreKeysActionScan > QuickSsh.ScoreKeysSavedItem,
-                "The scan action row (lowest action score) must appear above saved keys.");
+            Assert.True(QuickSsh.ScoreKeysSavedItem > QuickSsh.ScoreKeysActionInstall,
+                "Saved keys must appear above the install row.");
+            Assert.True(QuickSsh.ScoreKeysActionInstall > QuickSsh.ScoreKeysActionManage,
+                "Install row must appear above the manage row.");
         }
 
         [Fact]
-        public void KeysSubmenu_ActionRowScoresAreInDescendingOrder()
+        public void KeysManage_ActionRowScoresAreInDescendingOrder()
         {
-            // add > generate > remove > rename > copy-path > copy-pub > scan
-            Assert.True(QuickSsh.ScoreKeysActionAdd      > QuickSsh.ScoreKeysActionGenerate);
-            Assert.True(QuickSsh.ScoreKeysActionGenerate > QuickSsh.ScoreKeysActionRemove);
-            Assert.True(QuickSsh.ScoreKeysActionRemove   > QuickSsh.ScoreKeysActionRename);
-            Assert.True(QuickSsh.ScoreKeysActionRename   > QuickSsh.ScoreKeysActionCopyPath);
-            Assert.True(QuickSsh.ScoreKeysActionCopyPath > QuickSsh.ScoreKeysActionCopyPub);
-            Assert.True(QuickSsh.ScoreKeysActionCopyPub  > QuickSsh.ScoreKeysActionScan);
+            // add > generate > scan > rename > copy-path > copy-pub > remove
+            Assert.True(QuickSsh.ScoreKeysManageAdd      > QuickSsh.ScoreKeysManageGenerate);
+            Assert.True(QuickSsh.ScoreKeysManageGenerate > QuickSsh.ScoreKeysManageScan);
+            Assert.True(QuickSsh.ScoreKeysManageScan     > QuickSsh.ScoreKeysManageRename);
+            Assert.True(QuickSsh.ScoreKeysManageRename   > QuickSsh.ScoreKeysManageCopyPath);
+            Assert.True(QuickSsh.ScoreKeysManageCopyPath > QuickSsh.ScoreKeysManageCopyPub);
+            Assert.True(QuickSsh.ScoreKeysManageCopyPub  > QuickSsh.ScoreKeysManageRemove);
         }
 
         [Fact]
-        public void KeysSubmenu_ActionRowScoresAreSafeAboveSavedItemBase()
+        public void KeysSubmenu_ManageRowsAreSafeAboveDefaultScore()
         {
-            int gap = QuickSsh.ScoreKeysActionScan - QuickSsh.ScoreKeysSavedItem;
-            Assert.True(gap > 500,
-                $"Scan action score must exceed saved item base by > 500 (actual gap: {gap}).");
+            Assert.True(QuickSsh.ScoreKeysActionManage >= 1000,
+                "Keys manage action score must be >= 1000 to be safe from fuzzy boosting.");
+            Assert.True(QuickSsh.ScoreKeysManageCopyPub >= 1000,
+                "Keys manage copy-pub score must be >= 1000 to be safe from fuzzy boosting.");
         }
 
         // ── ScanSshDirectory filtering ────────────────────────────────────────────
@@ -451,6 +459,7 @@ namespace Flow.Launcher.Plugin.QuickSSH.Tests
             }";
             var entry = Newtonsoft.Json.JsonConvert.DeserializeObject<SshKeyEntry>(json);
 
+            Assert.NotNull(entry);
             Assert.Equal(@"C:\Users\me\.ssh\id_ed25519", entry.Path);
             Assert.Equal("ed25519", entry.Algorithm);
             Assert.Equal("generated", entry.Source);
@@ -512,20 +521,19 @@ namespace Flow.Launcher.Plugin.QuickSSH.Tests
         // ── Generate score placement ──────────────────────────────────────────────
 
         [Fact]
-        public void KeysSubmenu_GenerateScoreIsBetweenAddAndRemove()
+        public void KeysManage_GenerateScoreIsBetweenAddAndScan()
         {
-            Assert.True(QuickSsh.ScoreKeysActionAdd > QuickSsh.ScoreKeysActionGenerate,
-                "Add must outrank generate.");
-            Assert.True(QuickSsh.ScoreKeysActionGenerate > QuickSsh.ScoreKeysActionRemove,
-                "Generate must outrank remove.");
+            Assert.True(QuickSsh.ScoreKeysManageAdd > QuickSsh.ScoreKeysManageGenerate,
+                "Add must outrank generate in the manage menu.");
+            Assert.True(QuickSsh.ScoreKeysManageGenerate > QuickSsh.ScoreKeysManageScan,
+                "Generate must outrank scan in the manage menu.");
         }
 
         [Fact]
-        public void KeysSubmenu_GenerateScoreIsSafeAboveSavedItems()
+        public void KeysManage_GenerateScoreIsSafeAboveDefaultScore()
         {
-            int gap = QuickSsh.ScoreKeysActionGenerate - QuickSsh.ScoreKeysSavedItem;
-            Assert.True(gap > 500,
-                $"Generate action score must exceed saved item base by > 500 (actual gap: {gap}).");
+            Assert.True(QuickSsh.ScoreKeysManageGenerate >= 1000,
+                "Generate score must be >= 1000 to be safe from fuzzy boosting.");
         }
 
         // ── Generated key auto-register availability ──────────────────────────────
@@ -837,8 +845,8 @@ namespace Flow.Launcher.Plugin.QuickSSH.Tests
             finally
             {
                 // Clean up the top-level temp dir
-                var root = Path.Combine(Path.GetTempPath(),
-                    Path.GetFileName(Path.GetDirectoryName(Path.GetDirectoryName(dir))));
+                var root = Directory.GetParent(dir)?.Parent?.FullName
+                    ?? throw new InvalidOperationException("Unable to resolve the temporary test root.");
                 if (Directory.Exists(root))
                     Directory.Delete(root, true);
             }

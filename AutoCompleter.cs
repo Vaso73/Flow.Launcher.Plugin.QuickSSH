@@ -13,7 +13,7 @@ namespace Flow.Launcher.Plugin.QuickSSH
         /// </summary>
         private static readonly string[] VisibleCommands = new[]
         {
-            "profiles", "keys", "shell", "config", "help"
+            "profiles", "actions", "tools", "help"
         };
 
         /// <summary>
@@ -21,7 +21,15 @@ namespace Flow.Launcher.Plugin.QuickSSH
         /// </summary>
         private static readonly string[] ProfilesSubCommands = new[]
         {
-            "add", "remove", "rename", "copy", "export", "import"
+            "add", "manage", "rename", "remove", "copy", "export", "import"
+        };
+
+        /// <summary>
+        /// Sub-commands of "actions" that appear in suggestions after "actions ".
+        /// </summary>
+        private static readonly string[] ActionsSubCommands = new[]
+        {
+            "run", "add", "manage"
         };
 
         /// <summary>
@@ -29,7 +37,7 @@ namespace Flow.Launcher.Plugin.QuickSSH
         /// </summary>
         private static readonly string[] ShellSubCommands = new[]
         {
-            "add", "remove"
+            "manage", "add", "remove"
         };
 
         /// <summary>
@@ -37,7 +45,7 @@ namespace Flow.Launcher.Plugin.QuickSSH
         /// </summary>
         private static readonly string[] KeysSubCommands = new[]
         {
-            "add", "generate", "install", "remove", "rename", "copy-path", "copy-pub", "scan"
+            "install", "manage", "add", "generate", "rename", "remove", "copy-path", "copy-pub", "scan"
         };
 
         /// <summary>
@@ -46,9 +54,9 @@ namespace Flow.Launcher.Plugin.QuickSSH
         public static List<Result> GetSuggestions(
             string actionKeyword,
             string input,
-            UserData userData,
+            UserData? userData,
             string iconPath,
-            IPublicAPI api = null)
+            IPublicAPI? api = null)
         {
             var results = new List<Result>();
             var trimmed = input.Trim().ToLowerInvariant();
@@ -65,7 +73,7 @@ namespace Flow.Launcher.Plugin.QuickSSH
                     var autoText = actionKeyword + " " + cmd + " ";
                     results.Add(new Result
                     {
-                        Title = cmd,
+                        Title = GetCommandTitle(cmd),
                         SubTitle = GetCommandDescription(cmd),
                         IcoPath = iconPath,
                         Score = GetTopLevelScore(cmd),
@@ -98,7 +106,7 @@ namespace Flow.Launcher.Plugin.QuickSSH
                 var autoText = actionKeyword + " " + cmd + " ";
                 results.Add(new Result
                 {
-                    Title = cmd,
+                    Title = GetCommandTitle(cmd),
                     SubTitle = GetCommandDescription(cmd),
                     IcoPath = iconPath,
                     Action = _ =>
@@ -127,7 +135,7 @@ namespace Flow.Launcher.Plugin.QuickSSH
                         {
                             Title = sub,
                             SubTitle = GetProfilesSubCommandDescription(sub),
-                            IcoPath = iconPath,
+                            IcoPath = QuickSsh.GetSemanticIconPath(sub),
                             Action = _ =>
                             {
                                 api?.ChangeQuery(autoText, true);
@@ -157,7 +165,70 @@ namespace Flow.Launcher.Plugin.QuickSSH
                             {
                                 Title = profileName,
                                 SubTitle = profileDisplay,
-                                IcoPath = iconPath,
+                                IcoPath = QuickSsh.GetSemanticIconPath("saved"),
+                                Action = _ =>
+                                {
+                                    api?.ChangeQuery(autoText, true);
+                                    return false;
+                                },
+                                AutoCompleteText = autoText
+                            });
+                        }
+                    }
+                }
+            }
+
+            // After "actions " suggest sub-commands and saved action names.
+            bool isActionsPrefix = prefixCheck.StartsWith("actions ");
+            if (isActionsPrefix)
+            {
+                var search = prefixCheck.Substring(8); // length of "actions "
+
+                bool hasActions = userData?.CommandProfiles != null &&
+                    userData.CommandProfiles.Count > 0;
+
+                foreach (var sub in ActionsSubCommands)
+                {
+                    // A new user only needs Add. Run and management become useful
+                    // after at least one action exists.
+                    if (!hasActions && sub != "add")
+                        continue;
+
+                    if (string.IsNullOrEmpty(search) || sub.StartsWith(search))
+                    {
+                        var autoText = actionKeyword + " actions " + sub + " ";
+                        results.Add(new Result
+                        {
+                            Title = sub,
+                            SubTitle = GetActionsSubCommandDescription(sub),
+                            IcoPath = QuickSsh.GetSemanticIconPath(sub),
+                            Action = _ =>
+                            {
+                                api?.ChangeQuery(autoText, true);
+                                return false;
+                            },
+                            AutoCompleteText = autoText
+                        });
+                    }
+                }
+
+                bool isExactSubCmd = ActionsSubCommands.Any(s => s == search);
+                if (!isExactSubCmd && userData?.CommandProfiles != null)
+                {
+                    foreach (var entry in userData.CommandProfiles)
+                    {
+                        var actionName = entry.Key;
+                        var actionDisplay = entry.Value?.ToDisplayString() ?? "";
+
+                        if (string.IsNullOrEmpty(search) ||
+                            actionName.ToLowerInvariant().Contains(search))
+                        {
+                            var autoText = actionKeyword + " actions use " + actionName + " ";
+                            results.Add(new Result
+                            {
+                                Title = actionName,
+                                SubTitle = actionDisplay,
+                                IcoPath = QuickSsh.GetSemanticIconPath("saved"),
                                 Action = _ =>
                                 {
                                     api?.ChangeQuery(autoText, true);
@@ -185,7 +256,7 @@ namespace Flow.Launcher.Plugin.QuickSSH
                         {
                             Title = sub,
                             SubTitle = GetShellSubCommandDescription(sub),
-                            IcoPath = iconPath,
+                            IcoPath = QuickSsh.GetSemanticIconPath(sub),
                             Action = _ =>
                             {
                                 api?.ChangeQuery(autoText, true);
@@ -213,7 +284,7 @@ namespace Flow.Launcher.Plugin.QuickSSH
                         {
                             Title = sub,
                             SubTitle = GetKeysSubCommandDescription(sub),
-                            IcoPath = iconPath,
+                            IcoPath = QuickSsh.GetSemanticIconPath(sub),
                             Action = _ =>
                             {
                                 api?.ChangeQuery(autoText, true);
@@ -241,7 +312,7 @@ namespace Flow.Launcher.Plugin.QuickSSH
                             {
                                 Title = keyAlias,
                                 SubTitle = keyDisplay,
-                                IcoPath = iconPath,
+                                IcoPath = QuickSsh.GetSemanticIconPath("saved"),
                                 Action = _ =>
                                 {
                                     api?.ChangeQuery(autoText, true);
@@ -257,18 +328,39 @@ namespace Flow.Launcher.Plugin.QuickSSH
             return results;
         }
 
+        private static string GetCommandTitle(string command)
+        {
+            var key = command switch
+            {
+                "profiles" => "plugin_quickssh_title_commandprofiles",
+                "actions"  => "plugin_quickssh_title_commandactions",
+                "tools"    => "plugin_quickssh_title_commandtools",
+                "help"     => "plugin_quickssh_title_commandhelp",
+                _ => null
+            };
+            return GetLocalizedText(key, command);
+        }
+
         private static string GetCommandDescription(string command)
         {
             var key = command switch
             {
-                "profiles" => "plugin_quickssh_subtitle_commandprofiles",
-                "keys"     => "plugin_quickssh_subtitle_commandkeys",
-                "config"   => "plugin_quickssh_subtitle_commandconfig_usage",
-                "shell"    => "plugin_quickssh_subtitle_commandshell_help",
-                "help"     => "plugin_quickssh_subtitle_commandhelp_usage",
+                "profiles" => "plugin_quickssh_subtitle_root_profiles",
+                "actions"  => "plugin_quickssh_subtitle_root_actions",
+                "tools"    => "plugin_quickssh_subtitle_root_tools",
+                "help"     => "plugin_quickssh_subtitle_root_help",
                 _ => null
             };
-            return key != null ? QuickSsh.GetTranslation(key) : "";
+            return GetLocalizedText(key, string.Empty);
+        }
+
+        private static string GetLocalizedText(string key, string fallback)
+        {
+            if (string.IsNullOrEmpty(key))
+                return fallback;
+
+            var translated = QuickSsh.GetTranslation(key);
+            return translated == key ? fallback : translated;
         }
 
         /// <summary>
@@ -279,9 +371,8 @@ namespace Flow.Launcher.Plugin.QuickSSH
         private static int GetTopLevelScore(string command) => command switch
         {
             "profiles" => QuickSsh.ScoreTopLevelProfiles,
-            "keys"     => QuickSsh.ScoreTopLevelKeys,
-            "shell"    => QuickSsh.ScoreTopLevelShell,
-            "config"   => QuickSsh.ScoreTopLevelConfig,
+            "actions"  => QuickSsh.ScoreTopLevelActions,
+            "tools"    => QuickSsh.ScoreTopLevelTools,
             "help"     => QuickSsh.ScoreTopLevelHelp,
             _          => 0
         };
@@ -291,6 +382,7 @@ namespace Flow.Launcher.Plugin.QuickSSH
             var key = subCmd switch
             {
                 "add"    => "plugin_quickssh_subtitle_commandprofiles_add",
+                "manage" => "plugin_quickssh_subtitle_commandprofiles_manage",
                 "remove" => "plugin_quickssh_subtitle_commandprofiles_remove",
                 "rename" => "plugin_quickssh_subtitle_commandprofiles_rename",
                 "copy"   => "plugin_quickssh_subtitle_commandprofiles_copy_usage",
@@ -301,10 +393,23 @@ namespace Flow.Launcher.Plugin.QuickSSH
             return key != null ? QuickSsh.GetTranslation(key) : "";
         }
 
+        private static string GetActionsSubCommandDescription(string subCmd)
+        {
+            var key = subCmd switch
+            {
+                "run"    => "plugin_quickssh_subtitle_commandactions_run",
+                "add"    => "plugin_quickssh_subtitle_commandactions_add",
+                "manage" => "plugin_quickssh_subtitle_commandactions_manage",
+                _ => null
+            };
+            return key != null ? QuickSsh.GetTranslation(key) : "";
+        }
+
         private static string GetShellSubCommandDescription(string subCmd)
         {
             var key = subCmd switch
             {
+                "manage" => "plugin_quickssh_subtitle_commandshell_help",
                 "add"    => "plugin_quickssh_subtitle_commandshell_add_usage",
                 "remove" => "plugin_quickssh_subtitle_commandshell_remove",
                 _ => null
@@ -317,6 +422,7 @@ namespace Flow.Launcher.Plugin.QuickSSH
             var key = subCmd switch
             {
                 "add"       => "plugin_quickssh_subtitle_commandkeys_add",
+                "manage"    => "plugin_quickssh_subtitle_commandkeys_manage",
                 "generate"  => "plugin_quickssh_subtitle_commandkeys_generate",
                 "install"   => "plugin_quickssh_subtitle_commandkeys_install",
                 "remove"    => "plugin_quickssh_subtitle_commandkeys_remove",
