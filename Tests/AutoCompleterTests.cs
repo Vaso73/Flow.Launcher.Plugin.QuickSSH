@@ -19,10 +19,12 @@ namespace Flow.Launcher.Plugin.QuickSSH.Tests
 
             // New top-level commands
             Assert.Contains("profiles", titles);
-            Assert.Contains("keys", titles);
-            Assert.Contains("config", titles);
-            Assert.Contains("shell", titles);
+            Assert.Contains("actions", titles);
+            Assert.Contains("tools", titles);
             Assert.Contains("help", titles);
+            Assert.DoesNotContain("keys", titles);
+            Assert.DoesNotContain("config", titles);
+            Assert.DoesNotContain("shell", titles);
 
             // Removed top-level commands must NOT appear
             Assert.DoesNotContain("add", titles);
@@ -58,12 +60,10 @@ namespace Flow.Launcher.Plugin.QuickSSH.Tests
         }
 
         [Fact]
-        public void GetSuggestions_PartialCo_ReturnsConfig()
+        public void GetSuggestions_PartialTo_ReturnsTools()
         {
-            var results = AutoCompleter.GetSuggestions("ssh", "co", null, "icon.png");
-            var titles = new HashSet<string>();
-            foreach (var r in results) titles.Add(r.Title);
-            Assert.Contains("config", titles);
+            var results = AutoCompleter.GetSuggestions("ssh", "to", null, "icon.png");
+            Assert.Contains(results, r => r.AutoCompleteText == "ssh tools ");
         }
 
         [Fact]
@@ -82,6 +82,7 @@ namespace Flow.Launcher.Plugin.QuickSSH.Tests
             var titles = new HashSet<string>();
             foreach (var r in results) titles.Add(r.Title);
 
+            Assert.Contains("manage", titles);
             Assert.Contains("add", titles);
             Assert.Contains("remove", titles);
             Assert.Contains("rename", titles);
@@ -140,34 +141,27 @@ namespace Flow.Launcher.Plugin.QuickSSH.Tests
         [Fact]
         public void GetSuggestions_EmptyInput_CommandsHaveDescendingScoresInDefinedOrder()
         {
-            // Expected display order: profiles > keys > shell > config > help
-            // Flow Launcher sorts by Score descending, so each command must have a
-            // strictly higher score than the one that should follow it.
             var results = AutoCompleter.GetSuggestions("ssh", "", null, "icon.png");
 
-            int profilesScore = results.First(r => r.Title == "profiles").Score;
-            int keysScore     = results.First(r => r.Title == "keys").Score;
-            int shellScore    = results.First(r => r.Title == "shell").Score;
-            int configScore   = results.First(r => r.Title == "config").Score;
-            int helpScore     = results.First(r => r.Title == "help").Score;
+            int profilesScore = results.First(r => r.AutoCompleteText == "ssh profiles ").Score;
+            int actionsScore  = results.First(r => r.AutoCompleteText == "ssh actions ").Score;
+            int toolsScore    = results.First(r => r.AutoCompleteText == "ssh tools ").Score;
+            int helpScore     = results.First(r => r.AutoCompleteText == "ssh help ").Score;
 
-            Assert.True(profilesScore > keysScore,   "profiles must outrank keys");
-            Assert.True(keysScore     > shellScore,   "keys must outrank shell");
-            Assert.True(shellScore    > configScore, "shell must outrank config");
-            Assert.True(configScore   > helpScore,   "config must outrank help");
+            Assert.True(profilesScore > actionsScore);
+            Assert.True(actionsScore > toolsScore);
+            Assert.True(toolsScore > helpScore);
         }
 
         [Fact]
         public void GetSuggestions_EmptyInput_SortedByScoreDescending_YieldsExactOrder()
         {
-            // When sorted by Score descending (as Flow Launcher does at runtime),
-            // the top-level commands must appear in exactly this order:
-            //   1. profiles, 2. keys, 3. shell, 4. config, 5. help
             var results = AutoCompleter.GetSuggestions("ssh", "", null, "icon.png");
+            var ordered = results.OrderByDescending(r => r.Score)
+                .Select(r => r.AutoCompleteText)
+                .ToList();
 
-            var ordered = results.OrderByDescending(r => r.Score).Select(r => r.Title).ToList();
-
-            Assert.Equal(new[] { "profiles", "keys", "shell", "config", "help" }, ordered);
+            Assert.Equal(new[] { "ssh profiles ", "ssh actions ", "ssh tools ", "ssh help " }, ordered);
         }
 
         [Fact]
@@ -190,38 +184,24 @@ namespace Flow.Launcher.Plugin.QuickSSH.Tests
         [Fact]
         public void TopLevelScoreConstants_AreInCorrectDescendingOrder()
         {
-            // Verify the centralized constants in QuickSsh follow the expected order:
-            // profiles > keys > shell > config > help
-            Assert.True(QuickSsh.ScoreTopLevelProfiles > QuickSsh.ScoreTopLevelKeys,
-                "profiles must outrank keys");
-            Assert.True(QuickSsh.ScoreTopLevelKeys > QuickSsh.ScoreTopLevelShell,
-                "keys must outrank shell");
-            Assert.True(QuickSsh.ScoreTopLevelShell > QuickSsh.ScoreTopLevelConfig,
-                "shell must outrank config");
-            Assert.True(QuickSsh.ScoreTopLevelConfig > QuickSsh.ScoreTopLevelHelp,
-                "config must outrank help");
+            Assert.True(QuickSsh.ScoreTopLevelProfiles > QuickSsh.ScoreTopLevelActions);
+            Assert.True(QuickSsh.ScoreTopLevelActions > QuickSsh.ScoreTopLevelTools);
+            Assert.True(QuickSsh.ScoreTopLevelTools > QuickSsh.ScoreTopLevelHelp);
         }
 
         [Fact]
         public void TopLevelScoreConstants_GapsAreAtLeast100k()
         {
-            // Ensure each gap is exactly 100 000 (or at least large enough to resist
-            // Flow Launcher's internal usage-history bonus).
             int[] scores = new[]
             {
                 QuickSsh.ScoreTopLevelProfiles,
-                QuickSsh.ScoreTopLevelKeys,
-                QuickSsh.ScoreTopLevelShell,
-                QuickSsh.ScoreTopLevelConfig,
+                QuickSsh.ScoreTopLevelActions,
+                QuickSsh.ScoreTopLevelTools,
                 QuickSsh.ScoreTopLevelHelp
             };
 
             for (int i = 0; i < scores.Length - 1; i++)
-            {
-                int gap = scores[i] - scores[i + 1];
-                Assert.True(gap >= 100_000,
-                    $"Gap between constant position {i} and {i + 1} is only {gap}; must be >= 100 000.");
-            }
+                Assert.True(scores[i] - scores[i + 1] >= 100_000);
         }
 
         // ── Partial "profiles <prefix>" sub-command suggestions ───────────────────
@@ -280,6 +260,62 @@ namespace Flow.Launcher.Plugin.QuickSSH.Tests
             Assert.DoesNotContain(results, r => r.Title == "home");
         }
 
+        // ── "actions " sub-command suggestions ───────────────────────────────────
+
+        [Fact]
+        public void GetSuggestions_ActionsSpace_SuggestsSubCommandsAndSavedActions()
+        {
+            var userData = new UserData();
+            userData.Attach(() => { });
+            userData.CommandProfiles["restart-nginx"] = new CommandProfile { Command = "systemctl restart nginx" };
+
+            var results = AutoCompleter.GetSuggestions("ssh", "actions ", userData, "icon.png");
+            var titles = results.Select(r => r.Title).ToHashSet();
+
+            Assert.Contains("run", titles);
+            Assert.Contains("add", titles);
+            Assert.Contains("manage", titles);
+            Assert.Contains("restart-nginx", titles);
+            Assert.Contains(results, r => r.Title == "restart-nginx" &&
+                r.AutoCompleteText == "ssh actions use restart-nginx ");
+        }
+
+        [Fact]
+        public void GetSuggestions_ActionsSpaceWithoutSavedActions_OnlySuggestsAdd()
+        {
+            var userData = new UserData();
+            userData.Attach(() => { });
+
+            var results = AutoCompleter.GetSuggestions("ssh", "actions ", userData, "icon.png");
+            var titles = results.Select(r => r.Title).ToHashSet();
+
+            Assert.Contains("add", titles);
+            Assert.DoesNotContain("run", titles);
+            Assert.DoesNotContain("manage", titles);
+        }
+
+        [Theory]
+        [InlineData("a", new[] { "add" })]
+        [InlineData("ru", new[] { "run" })]
+        [InlineData("m", new[] { "manage" })]
+        public void GetSuggestions_ActionsPartialPrefix_ShowsMatchingSubCommands(
+            string partial, string[] expected)
+        {
+            var userData = new UserData();
+            userData.Attach(() => { });
+            userData.CommandProfiles["restart-nginx"] = new CommandProfile { Command = "uptime" };
+
+            var results = AutoCompleter.GetSuggestions(
+                "ssh", "actions " + partial, userData, "icon.png");
+            var titles = results.Select(r => r.Title)
+                .Where(t => t == "run" || t == "add" || t == "manage")
+                .ToHashSet();
+
+            foreach (var item in expected)
+                Assert.Contains(item, titles);
+            Assert.Equal(expected.Length, titles.Count);
+        }
+
         // ── "shell " sub-command suggestions ─────────────────────────────────────
 
         [Fact]
@@ -289,11 +325,14 @@ namespace Flow.Launcher.Plugin.QuickSSH.Tests
             var titles = new HashSet<string>();
             foreach (var r in results) titles.Add(r.Title);
 
+            Assert.Contains("manage", titles);
             Assert.Contains("add", titles);
             Assert.Contains("remove", titles);
         }
 
         [Theory]
+        [InlineData("m",      new[] { "manage" })]
+        [InlineData("ma",     new[] { "manage" })]
         [InlineData("a",      new[] { "add" })]
         [InlineData("ad",     new[] { "add" })]
         [InlineData("add",    new[] { "add" })]
@@ -309,7 +348,7 @@ namespace Flow.Launcher.Plugin.QuickSSH.Tests
             var results = AutoCompleter.GetSuggestions("ssh", "shell " + partial, null, "icon.png");
             var subCommandTitles = results
                 .Select(r => r.Title)
-                .Where(t => t == "add" || t == "remove")
+                .Where(t => t == "manage" || t == "add" || t == "remove")
                 .ToHashSet();
 
             foreach (var e in expected)
@@ -319,7 +358,10 @@ namespace Flow.Launcher.Plugin.QuickSSH.Tests
 
         [Theory]
         [InlineData("ad",    "remove")]
+        [InlineData("ad",    "manage")]
         [InlineData("rem",   "add")]
+        [InlineData("rem",   "manage")]
+        [InlineData("ma",    "add")]
         public void GetSuggestions_ShellPartialSubCommand_DoesNotSuggestNonMatchingSubCommands(
             string partial, string notExpected)
         {
@@ -331,6 +373,8 @@ namespace Flow.Launcher.Plugin.QuickSSH.Tests
 
         [Theory]
         [InlineData("profiles")]
+        [InlineData("actions")]
+        [InlineData("tools")]
         [InlineData("keys")]
         [InlineData("config")]
         [InlineData("shell")]

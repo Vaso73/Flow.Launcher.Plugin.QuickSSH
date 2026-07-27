@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Text.RegularExpressions;
 
 namespace Flow.Launcher.Plugin.QuickSSH
 {
@@ -7,7 +8,7 @@ namespace Flow.Launcher.Plugin.QuickSSH
     /// Builds SSH commands for deploying a public key to a remote host's
     /// <c>~/.ssh/authorized_keys</c> file.
     /// </summary>
-    public static class RemoteKeyInstallBuilder
+    public static partial class RemoteKeyInstallBuilder
     {
         /// <summary>
         /// Key type prefixes that are accepted in public key validation.
@@ -23,6 +24,14 @@ namespace Flow.Launcher.Plugin.QuickSSH
             "sk-ecdsa-sha2-nistp256@openssh.com"
         };
 
+        private const string UserAtHostPatternText =
+            @"\A[A-Za-z0-9][A-Za-z0-9._-]{0,63}@" +
+            @"[A-Za-z0-9](?:[A-Za-z0-9_-]{0,61}[A-Za-z0-9])?" +
+            @"(?:\.[A-Za-z0-9](?:[A-Za-z0-9_-]{0,61}[A-Za-z0-9])?)*\z";
+
+        [GeneratedRegex(UserAtHostPatternText, RegexOptions.CultureInvariant)]
+        private static partial Regex UserAtHostRegex();
+
         /// <summary>
         /// Validates that <paramref name="line"/> is a safe, well-formed public
         /// key line suitable for embedding in a remote shell command.
@@ -37,7 +46,7 @@ namespace Flow.Launcher.Plugin.QuickSSH
         ///         (<c>\0</c>).</item>
         /// </list>
         /// </summary>
-        public static bool ValidatePublicKeyLine(string line)
+        public static bool ValidatePublicKeyLine(string? line)
         {
             if (string.IsNullOrEmpty(line))
                 return false;
@@ -160,6 +169,9 @@ namespace Flow.Launcher.Plugin.QuickSSH
         /// </returns>
         public static string BuildFullSshCommand(string userAtHost, string bootstrapCommand)
         {
+            if (!IsValidUserAtHost(userAtHost))
+                throw new ArgumentException("Destination must be a safe user@host value.", nameof(userAtHost));
+
             return "ssh " + userAtHost + " \"" + bootstrapCommand + "\"";
         }
 
@@ -190,23 +202,19 @@ namespace Flow.Launcher.Plugin.QuickSSH
 
         /// <summary>
         /// Returns <see langword="true"/> when <paramref name="input"/> looks like
-        /// a valid <c>user@host</c> destination (contains exactly one <c>@</c> with
-        /// non-empty parts on both sides).
+        /// a valid <c>user@host</c> destination.  The destination is later passed
+        /// through <c>cmd.exe /k</c>, so this intentionally uses a strict allowlist
+        /// instead of trying to reject individual shell metacharacters.
         /// </summary>
-        public static bool IsValidUserAtHost(string input)
+        public static bool IsValidUserAtHost(string? input)
         {
-            if (string.IsNullOrEmpty(input))
+            if (string.IsNullOrWhiteSpace(input))
                 return false;
 
-            var atIndex = input.IndexOf('@');
-            if (atIndex <= 0 || atIndex >= input.Length - 1)
+            if (!string.Equals(input, input.Trim(), StringComparison.Ordinal))
                 return false;
 
-            // Must not contain spaces.
-            if (input.IndexOf(' ') >= 0)
-                return false;
-
-            return true;
+            return UserAtHostRegex().IsMatch(input);
         }
     }
 }

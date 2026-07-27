@@ -1,121 +1,204 @@
+using System;
+using System.IO;
 using Xunit;
 
 namespace Flow.Launcher.Plugin.QuickSSH.Tests
 {
-    /// <summary>
-    /// Verifies the submenu score invariants that drive consistent display ordering.
-    /// Flow Launcher sorts Result objects by Score descending, so the required layout:
-    ///   1. management row
-    ///   2. action rows
-    ///   3. saved items
-    /// must be enforced through the Score constants alone.
-    ///
-    /// Root cause of the original profiles ordering bug:
-    ///   Action row scores were 10-60 and saved profiles used Score=0.  Flow Launcher's
-    ///   built-in fuzzy-match bonus can boost a Score=0 result by hundreds of points,
-    ///   pushing saved profiles above the "Import profiles" action row (Score=10).
-    ///   The fix mirrors the shell submenu: action rows use the 1010-1060 range and
-    ///   saved profiles decrement from 500, matching the scale used by ScoreShellOtherStart.
-    /// </summary>
     public class SubmenuOrderingTests
     {
-        // ── profiles submenu ──────────────────────────────────────────────────────
-
         [Fact]
-        public void ProfilesSubmenu_ManagementRowIsAboveAllActionRows()
+        public void Profiles_SavedItemsAreAboveManage()
         {
-            Assert.True(QuickSsh.ScoreSubMenuManagement > QuickSsh.ScoreProfilesActionAdd,
-                "Management row must outrank every profiles action row.");
+            Assert.True(QuickSsh.ScoreProfilesSavedItem > QuickSsh.ScoreProfilesActionManage);
         }
 
         [Fact]
-        public void ProfilesSubmenu_AllActionRowsAreAboveSavedItems()
+        public void ProfilesManage_DestructiveActionIsLast()
         {
-            // The lowest-priority action row (import) must still beat a saved profile entry.
-            Assert.True(QuickSsh.ScoreProfilesActionImport > QuickSsh.ScoreProfilesSavedItem,
-                "The import action row (lowest action score) must appear above saved profiles.");
+            Assert.True(QuickSsh.ScoreProfilesManageAdd > QuickSsh.ScoreProfilesManageRename);
+            Assert.True(QuickSsh.ScoreProfilesManageRename > QuickSsh.ScoreProfilesManageCopy);
+            Assert.True(QuickSsh.ScoreProfilesManageCopy > QuickSsh.ScoreProfilesManageExport);
+            Assert.True(QuickSsh.ScoreProfilesManageExport > QuickSsh.ScoreProfilesManageImport);
+            Assert.True(QuickSsh.ScoreProfilesManageImport > QuickSsh.ScoreProfilesManageRemove);
         }
 
         [Fact]
-        public void ProfilesSubmenu_ActionRowScoresAreInDescendingOrder()
+        public void Actions_SavedItemsAreAboveManage()
         {
-            // add > remove > rename > copy > export > import
-            Assert.True(QuickSsh.ScoreProfilesActionAdd    > QuickSsh.ScoreProfilesActionRemove);
-            Assert.True(QuickSsh.ScoreProfilesActionRemove > QuickSsh.ScoreProfilesActionRename);
-            Assert.True(QuickSsh.ScoreProfilesActionRename > QuickSsh.ScoreProfilesActionCopy);
-            Assert.True(QuickSsh.ScoreProfilesActionCopy   > QuickSsh.ScoreProfilesActionExport);
-            Assert.True(QuickSsh.ScoreProfilesActionExport > QuickSsh.ScoreProfilesActionImport);
+            Assert.True(QuickSsh.ScoreActionsSavedItem > QuickSsh.ScoreActionsActionManage);
+            Assert.True(QuickSsh.ScoreActionsManageAdd > QuickSsh.ScoreActionsManageRename);
+            Assert.True(QuickSsh.ScoreActionsManageRename > QuickSsh.ScoreActionsManageRemove);
         }
 
         [Fact]
-        public void ProfilesSubmenu_ActionRowScoresAreSafeAboveSavedItemBase()
+        public void Shell_SavedItemsAreAboveManage()
         {
-            // The gap between the lowest action row (import) and the highest possible saved
-            // profile score (ScoreProfilesSavedItem, used as the decrement start) must be
-            // large enough that Flow Launcher's fuzzy-match bonus cannot bridge it.
-            // A gap > 500 is considered safe based on observed Flow Launcher scoring.
-            int gap = QuickSsh.ScoreProfilesActionImport - QuickSsh.ScoreProfilesSavedItem;
-            Assert.True(gap > 500,
-                $"Import action score must exceed saved item base by > 500 (actual gap: {gap}).");
-        }
-
-        // ── shell submenu ─────────────────────────────────────────────────────────
-
-        [Fact]
-        public void ShellSubmenu_ManagementRowIsAboveAllActionRows()
-        {
-            Assert.True(QuickSsh.ScoreSubMenuManagement > QuickSsh.ScoreShellActionAdd,
-                "Management row must outrank every shell action row.");
+            Assert.True(QuickSsh.ScoreShellSelected > QuickSsh.ScoreShellOtherStart);
+            Assert.True(QuickSsh.ScoreShellOtherStart > QuickSsh.ScoreShellActionManage);
+            Assert.True(QuickSsh.ScoreShellManageAdd > QuickSsh.ScoreShellManageRemove);
         }
 
         [Fact]
-        public void ShellSubmenu_AllActionRowsAreAboveSelectedShell()
+        public void Keys_PrimaryRowsAreAboveManage()
         {
-            // The lower-priority action row (remove) must still beat the selected shell entry.
-            Assert.True(QuickSsh.ScoreShellActionRemove > QuickSsh.ScoreShellSelected,
-                "The remove action row must appear above the selected shell entry.");
+            Assert.True(QuickSsh.ScoreKeysSavedItem > QuickSsh.ScoreKeysActionInstall);
+            Assert.True(QuickSsh.ScoreKeysActionInstall > QuickSsh.ScoreKeysActionManage);
         }
 
         [Fact]
-        public void ShellSubmenu_AllActionRowsAreAboveOtherShells()
+        public void KeysManage_DestructiveActionIsLast()
         {
-            // "other shells" start at ScoreShellOtherStart and decrement; the action rows
-            // must exceed even the maximum (first) other-shell score.
-            Assert.True(QuickSsh.ScoreShellActionRemove > QuickSsh.ScoreShellOtherStart,
-                "The remove action row must appear above the highest-scored non-selected shell.");
+            Assert.True(QuickSsh.ScoreKeysManageRename > QuickSsh.ScoreKeysManageCopyPath);
+            Assert.True(QuickSsh.ScoreKeysManageCopyPath > QuickSsh.ScoreKeysManageCopyPub);
+            Assert.True(QuickSsh.ScoreKeysManageCopyPub > QuickSsh.ScoreKeysManageRemove);
         }
 
         [Fact]
-        public void ShellSubmenu_SelectedShellIsAboveOtherShells()
+        public void Tools_PrimaryNavigationRowsAreOrdered()
         {
-            Assert.True(QuickSsh.ScoreShellSelected > QuickSsh.ScoreShellOtherStart,
-                "The selected shell must appear above other (non-selected) shells.");
+            Assert.True(QuickSsh.ScoreToolsKeys > QuickSsh.ScoreToolsShell);
+            Assert.True(QuickSsh.ScoreToolsShell > QuickSsh.ScoreToolsConfig);
         }
 
         [Fact]
-        public void ShellSubmenu_ActionRowAddIsAboveActionRowRemove()
+        public void MainSubmenus_HaveNoPassiveHeadingOrAddRow()
         {
-            Assert.True(QuickSsh.ScoreShellActionAdd > QuickSsh.ScoreShellActionRemove);
+            var source = ReadMain();
+
+            var profiles = ReadMethod(source, "HandleProfilesList", "HandleProfilesManage");
+            Assert.DoesNotContain("ScoreSubMenuManagement", profiles);
+            Assert.DoesNotContain("plugin_quickssh_title_commandprofiles_add", profiles);
+
+            var actions = ReadMethod(source, "HandleActionsList", "HandleActionsManage");
+            Assert.DoesNotContain("ScoreSubMenuManagement", actions);
+            Assert.DoesNotContain("plugin_quickssh_title_commandactions_add", actions);
+
+            var shell = ReadMethod(source, "HandleShell", "HandleShellManage");
+            var shellDefault = shell.IndexOf("default:", StringComparison.Ordinal);
+            var shellManage = shell.IndexOf("var manageText", shellDefault, StringComparison.Ordinal);
+            Assert.True(shellDefault >= 0 && shellManage > shellDefault);
+            Assert.DoesNotContain("plugin_quickssh_noshells",
+                shell.Substring(shellDefault, shellManage - shellDefault));
+
+            var keys = ReadMethod(source, "HandleKeysList", "HandleKeysManage");
+            Assert.DoesNotContain("ScoreSubMenuManagement", keys);
+            Assert.DoesNotContain("plugin_quickssh_title_commandkeys_add", keys);
         }
 
-        // ── cross-submenu consistency ─────────────────────────────────────────────
-
         [Fact]
-        public void BothSubmenus_ShareTheSameManagementRowScore()
+        public void ManageSubmenus_ContainAddAndStartWithBack()
         {
-            // The management row constant is used identically in both submenus.
-            Assert.Equal(int.MaxValue, QuickSsh.ScoreSubMenuManagement);
+            var source = ReadMain();
+
+            AssertManage(source, "HandleProfilesManage", "HandleLegacyAddRedirect",
+                "plugin_quickssh_title_commandprofiles_add");
+            AssertManage(source, "HandleActionsManage", "HandleActionsUse",
+                "plugin_quickssh_title_commandactions_add");
+            AssertManage(source, "HandleShellManage", "HandleKeys",
+                "plugin_quickssh_title_commandshell_add");
+            AssertManage(source, "HandleKeysManage", "HandleKeysAdd",
+                "plugin_quickssh_title_commandkeys_add");
         }
 
         [Fact]
-        public void BothSubmenus_ActionRowScoresAreOnTheSameScale()
+        public void ConfigAndHelp_HaveNoPassiveHeading()
         {
-            // Both submenus must use the 1000+ range for action rows so the ordering
-            // invariant holds regardless of Flow Launcher's internal fuzzy-match bonus.
-            Assert.True(QuickSsh.ScoreProfilesActionImport >= 1000,
-                "Profiles import action score must be >= 1000 to be safe from fuzzy boosting.");
-            Assert.True(QuickSsh.ScoreShellActionRemove >= 1000,
-                "Shell remove action score must be >= 1000 to be safe from fuzzy boosting.");
+            var source = ReadMain();
+            Assert.DoesNotContain("ScoreSubMenuManagement",
+                ReadMethod(source, "HandleConfig", "HandleDocs"));
+            Assert.DoesNotContain("ScoreSubMenuManagement",
+                ReadMethod(source, "HandleDocs", "#endregion"));
+        }
+
+
+
+        [Fact]
+        public void DeepOperationViews_StartWithBackAndHaveNoPassiveHeading()
+        {
+            var source = ReadMain();
+            var methods = new[]
+            {
+                ("HandleProfilesAdd", "HandleProfilesRemove"),
+                ("HandleProfilesRemove", "HandleProfilesRename"),
+                ("HandleProfilesRename", "HandleProfilesCopy"),
+                ("HandleProfilesCopy", "HandleProfilesExport"),
+                ("HandleProfilesExport", "HandleProfilesImport"),
+                ("HandleProfilesImport", "HandleDirectConnect"),
+                ("HandleActionsUse", "BuildActionConfirmationResults"),
+                ("BuildActionConfirmationResults", "HandleActionsAdd"),
+                ("HandleActionsAdd", "HandleActionsRemove"),
+                ("HandleActionsRemove", "HandleActionsRename"),
+                ("HandleActionsRename", "HandleActionsRun"),
+                ("HandleActionsRun", "HandleTools"),
+                ("HandleShell", "HandleShellManage"),
+                ("HandleKeysAdd", "HandleKeysInstall"),
+                ("HandleKeysInstall", "HandleKeysGenerate"),
+                ("HandleKeysGenerate", "HandleKeysRemove"),
+                ("HandleKeysRemove", "HandleKeysRename"),
+                ("HandleKeysRename", "HandleKeysCopyPath"),
+                ("HandleKeysCopyPath", "HandleKeysCopyPub"),
+                ("HandleKeysCopyPub", "HandleKeysScan"),
+                ("HandleKeysScan", "HandleConfig"),
+            };
+
+            foreach (var (method, nextMethod) in methods)
+            {
+                var region = ReadMethod(source, method, nextMethod);
+                Assert.DoesNotContain("Score = ScoreSubMenuManagement", region);
+
+                var back = region.IndexOf("MakeBackNavResult", StringComparison.Ordinal);
+                var firstRow = region.IndexOf("new Result", StringComparison.Ordinal);
+                Assert.True(back >= 0, $"{method} must contain back navigation.");
+                Assert.True(firstRow < 0 || back < firstRow,
+                    $"{method} must place back navigation before every visible row.");
+            }
+        }
+
+        [Fact]
+        public void ActionSelectionAndConfirmation_UseCompactProfileSummaries()
+        {
+            var source = ReadMain();
+            var use = ReadMethod(source, "HandleActionsUse", "BuildActionConfirmationResults");
+            Assert.Contains("BuildProfileListSubtitle(entry.Value)", use);
+            Assert.DoesNotContain("plugin_quickssh_title_commandactions_run", use);
+
+            var confirmation = ReadMethod(
+                source, "BuildActionConfirmationResults", "HandleActionsAdd");
+            Assert.Contains("plugin_quickssh_actions_execute_summary", confirmation);
+            Assert.Contains("plugin_quickssh_actions_copy_command_title", confirmation);
+            Assert.DoesNotContain("plugin_quickssh_actions_profile_label", confirmation);
+            Assert.DoesNotContain("plugin_quickssh_actions_action_label", confirmation);
+        }
+
+        private static void AssertManage(
+            string source, string method, string nextMethod, string addKey)
+        {
+            var region = ReadMethod(source, method, nextMethod);
+            Assert.Contains("MakeBackNavResult", region);
+            Assert.Contains(addKey, region);
+            Assert.DoesNotContain("ScoreSubMenuManagement", region);
+        }
+
+        private static string ReadMain()
+        {
+            var root = Path.GetFullPath(Path.Combine(
+                AppContext.BaseDirectory, "..", "..", "..", ".."));
+            return File.ReadAllText(Path.Combine(root, "Main.cs"));
+        }
+
+        private static string ReadMethod(
+            string source, string methodName, string nextMethodName)
+        {
+            var start = source.IndexOf(
+                $"private List<Result> {methodName}(", StringComparison.Ordinal);
+            var end = nextMethodName == "#endregion"
+                ? source.IndexOf("#endregion", start, StringComparison.Ordinal)
+                : source.IndexOf(
+                    $"private List<Result> {nextMethodName}(", start, StringComparison.Ordinal);
+
+            Assert.True(start >= 0, $"Method {methodName} was not found.");
+            Assert.True(end > start, $"Boundary {nextMethodName} was not found.");
+            return source.Substring(start, end - start);
         }
     }
 }

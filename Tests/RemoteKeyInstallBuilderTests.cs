@@ -347,14 +347,55 @@ namespace Flow.Launcher.Plugin.QuickSSH.Tests
         [InlineData("admin@10.0.0.1", true)]
         [InlineData("root@server.example.com", true)]
         [InlineData("user@host", true)]
+        [InlineData("user.name_1@host-1.example_lab", true)]
         [InlineData("", false)]
         [InlineData("noatsign", false)]
         [InlineData("@host", false)]       // empty user
         [InlineData("user@", false)]       // empty host
         [InlineData("user @host", false)]  // space in destination
+        [InlineData(" user@host", false)]
+        [InlineData("user@host ", false)]
+        [InlineData("user@@host", false)]
+        [InlineData("-oProxyCommand@host", false)]
+        [InlineData("user@-oProxyCommand", false)]
+        [InlineData("user@host:22", false)]
         public void IsValidUserAtHost_ValidatesCorrectly(string input, bool expected)
         {
             Assert.Equal(expected, RemoteKeyInstallBuilder.IsValidUserAtHost(input));
+        }
+
+        [Theory]
+        [InlineData("user@host&calc")]
+        [InlineData("user@host|whoami")]
+        [InlineData("user@host;whoami")]
+        [InlineData("user@host>file")]
+        [InlineData("user@host<file")]
+        [InlineData("user@host^whoami")]
+        [InlineData("user@\"host")]
+        [InlineData("\"user@host")]
+        [InlineData("user@host/path")]
+        [InlineData("user@host\\path")]
+        public void IsValidUserAtHost_RejectsShellMetacharacters(string input)
+        {
+            Assert.False(RemoteKeyInstallBuilder.IsValidUserAtHost(input));
+        }
+
+        [Fact]
+        public void BuildFullSshCommand_RejectsUnsafeDestination()
+        {
+            var bootstrap = RemoteKeyInstallBuilder.BuildBootstrapCommand("ssh-ed25519 AAAA user@host");
+
+            Assert.Throws<System.ArgumentException>(() =>
+                RemoteKeyInstallBuilder.BuildFullSshCommand("user@host&calc", bootstrap));
+        }
+
+        [Fact]
+        public void BuildRunCommand_RejectsUnsafeDestination()
+        {
+            var bootstrap = RemoteKeyInstallBuilder.BuildBootstrapCommand("ssh-ed25519 AAAA user@host");
+
+            Assert.Throws<System.ArgumentException>(() =>
+                RemoteKeyInstallBuilder.BuildRunCommand("user@host|whoami", bootstrap));
         }
 
         [Fact]

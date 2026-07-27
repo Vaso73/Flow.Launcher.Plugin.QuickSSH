@@ -7,10 +7,11 @@ using Newtonsoft.Json;
 namespace Flow.Launcher.Plugin.QuickSSH
 {
     /// <summary>
-    /// Persisted plugin data: SSH/SCP profiles, custom shells, and selected shell.
+    /// Persisted plugin data: SSH/SCP profiles, reusable actions, custom shells, SSH keys, and selected shell.
     /// </summary>
     public class UserData
     {
+        /// <summary>Gets or sets the persisted user-data schema version.</summary>
         public string PluginVersion { get; set; } = "2.0";
 
         // ── Structured profiles (canonical format, v2+) ────────────────────────────
@@ -18,6 +19,7 @@ namespace Flow.Launcher.Plugin.QuickSSH
         [JsonProperty]
         private Dictionary<string, SshProfile> ProfilesLists { get; set; } = new();
 
+        /// <summary>Gets the auto-saving SSH and SCP profile registry.</summary>
         [JsonIgnore]
         public AutoSaveDictionary<string, SshProfile> Profiles { get; private set; }
 
@@ -30,16 +32,28 @@ namespace Flow.Launcher.Plugin.QuickSSH
         [JsonProperty]
         private Dictionary<string, string> CustomShellLists { get; set; } = new();
 
+        /// <summary>Gets the auto-saving custom shell registry.</summary>
         [JsonIgnore]
         public AutoSaveDictionary<string, string> CustomShell { get; private set; }
 
+        /// <summary>Gets or sets the alias of the selected custom shell.</summary>
         public string? SelectedCustomShell { get; set; }
+
+        // ── Reusable SSH action profiles ───────────────────────────────────────
+
+        [JsonProperty]
+        private Dictionary<string, CommandProfile> CommandProfilesLists { get; set; } = new();
+
+        /// <summary>Gets the auto-saving reusable SSH action registry.</summary>
+        [JsonIgnore]
+        public AutoSaveDictionary<string, CommandProfile> CommandProfiles { get; private set; }
 
         // ── SSH key registry (alias → local path, never stores key content) ───────
 
         [JsonProperty]
         private Dictionary<string, SshKeyEntry> SshKeysLists { get; set; } = new();
 
+        /// <summary>Gets the auto-saving SSH key metadata registry.</summary>
         [JsonIgnore]
         public AutoSaveDictionary<string, SshKeyEntry> SshKeys { get; private set; }
 
@@ -47,7 +61,7 @@ namespace Flow.Launcher.Plugin.QuickSSH
         /// Binds auto-save callbacks after construction or deserialization.
         /// Migrates any legacy raw-string profiles to structured <see cref="SshProfile"/> objects.
         /// </summary>
-        /// <param name="onChanged">Callback invoked on every profile or shell mutation.</param>
+        /// <param name="onChanged">Callback invoked on every profile, action, shell, or key mutation.</param>
         /// <returns>
         /// <see langword="true"/> when v1 legacy data was found and migrated;
         /// the caller should persist immediately so the disk file reflects the new v2 format.
@@ -56,6 +70,7 @@ namespace Flow.Launcher.Plugin.QuickSSH
         {
             ProfilesLists ??= new Dictionary<string, SshProfile>();
             CustomShellLists ??= new Dictionary<string, string>();
+            CommandProfilesLists ??= new Dictionary<string, CommandProfile>();
             SshKeysLists ??= new Dictionary<string, SshKeyEntry>();
 
             bool migrated = false;
@@ -80,6 +95,7 @@ namespace Flow.Launcher.Plugin.QuickSSH
 
             Profiles = new AutoSaveDictionary<string, SshProfile>(ProfilesLists, onChanged);
             CustomShell = new AutoSaveDictionary<string, string>(CustomShellLists, onChanged);
+            CommandProfiles = new AutoSaveDictionary<string, CommandProfile>(CommandProfilesLists, onChanged);
             SshKeys = new AutoSaveDictionary<string, SshKeyEntry>(SshKeysLists, onChanged);
 
             return migrated;
@@ -95,34 +111,54 @@ namespace Flow.Launcher.Plugin.QuickSSH
         private readonly IDictionary<TKey, TValue> _inner;
         private Action _onChanged;
 
-        public AutoSaveDictionary(IDictionary<TKey, TValue> inner, Action onChanged)
+        /// <summary>Initializes an auto-saving dictionary wrapper.</summary>
+        /// <param name="inner">Dictionary that stores the values.</param>
+        /// <param name="onChanged">Callback invoked after every successful mutation.</param>
+        public AutoSaveDictionary(IDictionary<TKey, TValue> inner, Action? onChanged)
         {
             _inner = inner ?? throw new ArgumentNullException(nameof(inner));
             _onChanged = onChanged ?? Noop;
         }
 
-        public void SetCallback(Action onChanged) => _onChanged = onChanged ?? Noop;
+        /// <summary>Replaces the callback invoked after dictionary mutations.</summary>
+        /// <param name="onChanged">New callback, or a no-op callback when null.</param>
+        public void SetCallback(Action? onChanged) => _onChanged = onChanged ?? Noop;
 
+        /// <inheritdoc />
         public TValue this[TKey key]
         {
             get => _inner[key];
             set { _inner[key] = value; _onChanged(); }
         }
 
+        /// <inheritdoc />
         public ICollection<TKey> Keys => _inner.Keys;
+        /// <inheritdoc />
         public ICollection<TValue> Values => _inner.Values;
+        /// <inheritdoc />
         public int Count => _inner.Count;
+        /// <inheritdoc />
         public bool IsReadOnly => _inner.IsReadOnly;
 
+        /// <inheritdoc />
         public void Add(TKey key, TValue value) { _inner.Add(key, value); _onChanged(); }
+        /// <inheritdoc />
         public void Add(KeyValuePair<TKey, TValue> item) { _inner.Add(item); _onChanged(); }
+        /// <inheritdoc />
         public bool Remove(TKey key) { var r = _inner.Remove(key); if (r) _onChanged(); return r; }
+        /// <inheritdoc />
         public bool Remove(KeyValuePair<TKey, TValue> item) { var r = _inner.Remove(item); if (r) _onChanged(); return r; }
+        /// <inheritdoc />
         public void Clear() { _inner.Clear(); _onChanged(); }
+        /// <inheritdoc />
         public bool ContainsKey(TKey key) => _inner.ContainsKey(key);
+        /// <inheritdoc />
         public bool Contains(KeyValuePair<TKey, TValue> item) => _inner.Contains(item);
+        /// <inheritdoc />
         public bool TryGetValue(TKey key, out TValue value) => _inner.TryGetValue(key, out value);
+        /// <inheritdoc />
         public void CopyTo(KeyValuePair<TKey, TValue>[] array, int arrayIndex) => _inner.CopyTo(array, arrayIndex);
+        /// <inheritdoc />
         public IEnumerator<KeyValuePair<TKey, TValue>> GetEnumerator() => _inner.GetEnumerator();
         IEnumerator IEnumerable.GetEnumerator() => ((IEnumerable)_inner).GetEnumerator();
     }
@@ -133,8 +169,15 @@ namespace Flow.Launcher.Plugin.QuickSSH
     public class ProfileManager
     {
         private readonly string _path;
+
+        /// <summary>Gets the currently loaded plugin data.</summary>
         public UserData UserData { get; private set; }
 
+        /// <summary>Gets the fixed pre-import backup path next to the portable database.</summary>
+        internal string ImportBackupPath => _path + ".import.bak";
+
+        /// <summary>Initializes a profile manager for the specified JSON storage path.</summary>
+        /// <param name="path">Path to the portable profiles database.</param>
         public ProfileManager(string path)
         {
             _path = path;
@@ -155,6 +198,7 @@ namespace Flow.Launcher.Plugin.QuickSSH
             }
         }
 
+        /// <summary>Atomically saves the current plugin data to disk.</summary>
         public void SaveConfiguration()
         {
             var json = JsonConvert.SerializeObject(UserData, Formatting.Indented);
@@ -171,6 +215,46 @@ namespace Flow.Launcher.Plugin.QuickSSH
             }
         }
 
+        /// <summary>Creates or replaces the portable pre-import backup atomically.</summary>
+        internal string CreateImportBackup()
+        {
+            var backupPath = ImportBackupPath;
+            var tmp = backupPath + ".tmp";
+
+            try
+            {
+                File.Copy(_path, tmp, overwrite: true);
+                File.Move(tmp, backupPath, overwrite: true);
+                return backupPath;
+            }
+            finally
+            {
+                if (File.Exists(tmp))
+                    try { File.Delete(tmp); } catch { /* best effort cleanup */ }
+            }
+        }
+
+        /// <summary>Restores the portable database from a pre-import backup and reloads memory state.</summary>
+        internal void RestoreImportBackup(string backupPath)
+        {
+            if (string.IsNullOrWhiteSpace(backupPath) || !File.Exists(backupPath))
+                throw new FileNotFoundException("Profile import backup was not found.", backupPath);
+
+            var tmp = _path + ".restore.tmp";
+            try
+            {
+                File.Copy(backupPath, tmp, overwrite: true);
+                File.Move(tmp, _path, overwrite: true);
+                LoadConfiguration();
+            }
+            finally
+            {
+                if (File.Exists(tmp))
+                    try { File.Delete(tmp); } catch { /* best effort cleanup */ }
+            }
+        }
+
+        /// <summary>Loads plugin data from disk and performs any required legacy migration.</summary>
         public void LoadConfiguration()
         {
             var json = File.ReadAllText(_path);

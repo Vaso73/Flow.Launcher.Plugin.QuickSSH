@@ -10,48 +10,48 @@ namespace Flow.Launcher.Plugin.QuickSSH
     {
         /// <summary>Path to the private key file on disk.</summary>
         [JsonProperty]
-        public string Path { get; set; }
+        public string? Path { get; set; }
 
         /// <summary>
         /// Path to the corresponding public key file (e.g. id_ed25519.pub).
         /// When null, derived as <see cref="Path"/> + ".pub".
         /// </summary>
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
-        public string PublicKeyPath { get; set; }
+        public string? PublicKeyPath { get; set; }
 
         /// <summary>
         /// SSH key fingerprint (e.g. SHA256:...).  Populated by scan or user.
         /// </summary>
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
-        public string Fingerprint { get; set; }
+        public string? Fingerprint { get; set; }
 
         /// <summary>
         /// Comment field from the key (e.g. user@host).  Populated by scan or user.
         /// </summary>
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
-        public string Comment { get; set; }
+        public string? Comment { get; set; }
 
         /// <summary>Optional human-readable description.</summary>
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
-        public string Description { get; set; }
+        public string? Description { get; set; }
 
         /// <summary>
         /// Key algorithm (e.g. "ed25519", "rsa").  Populated by generate or scan.
         /// </summary>
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
-        public string Algorithm { get; set; }
+        public string? Algorithm { get; set; }
 
         /// <summary>
         /// How this key was registered (e.g. "generated", "manual", "scanned").
         /// </summary>
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
-        public string Source { get; set; }
+        public string? Source { get; set; }
 
         /// <summary>
         /// ISO 8601 UTC timestamp of when this entry was created.
         /// </summary>
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
-        public string CreatedAt { get; set; }
+        public string? CreatedAt { get; set; }
 
         /// <summary>Returns a display-friendly summary of this key entry.</summary>
         public string ToDisplayString()
@@ -65,7 +65,7 @@ namespace Flow.Launcher.Plugin.QuickSSH
         /// Returns the effective public key path: explicit <see cref="PublicKeyPath"/>
         /// if set, otherwise <see cref="Path"/> + ".pub".
         /// </summary>
-        public string GetEffectivePublicKeyPath()
+        public string? GetEffectivePublicKeyPath()
         {
             if (!string.IsNullOrEmpty(PublicKeyPath))
                 return PublicKeyPath;

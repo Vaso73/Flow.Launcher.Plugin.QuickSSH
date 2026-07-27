@@ -13,36 +13,64 @@ namespace Flow.Launcher.Plugin.QuickSSH
         /// Resolves the full path of an executable using the 'where' command.
         /// Returns the original name if resolution fails.
         /// </summary>
-        public static string ResolveExecutable(string exeName)
+        public static string ResolveExecutable(string exeName) =>
+            TryResolveExecutable(exeName, out var resolvedPath)
+                ? resolvedPath
+                : exeName;
+
+        /// <summary>
+        /// Resolves an executable to an existing file. Unlike <see cref="ResolveExecutable"/>,
+        /// this method fails when neither an explicit path nor PATH lookup can find the program.
+        /// </summary>
+        internal static bool TryResolveExecutable(string exeName, out string resolvedPath)
         {
-            if (Path.IsPathRooted(exeName) && File.Exists(exeName))
-                return exeName;
+            resolvedPath = string.Empty;
+            if (string.IsNullOrWhiteSpace(exeName))
+                return false;
+
+            var candidate = exeName.Trim();
+            if (Path.IsPathRooted(candidate))
+            {
+                if (!File.Exists(candidate))
+                    return false;
+
+                resolvedPath = Path.GetFullPath(candidate);
+                return true;
+            }
 
             try
             {
-                using var p = new Process
+                using var process = new Process
                 {
                     StartInfo = new ProcessStartInfo
                     {
-                        FileName = "where",
-                        Arguments = exeName,
+                        FileName = "where.exe",
                         RedirectStandardOutput = true,
                         RedirectStandardError = true,
                         UseShellExecute = false,
                         CreateNoWindow = true
                     }
                 };
-                p.Start();
-                string output = p.StandardOutput.ReadLine();
-                // Drain stderr to prevent deadlock; we only need the first stdout line.
-                p.StandardError.ReadToEnd();
-                p.WaitForExit();
-                if (!string.IsNullOrWhiteSpace(output) && File.Exists(output.Trim()))
-                    return output.Trim();
-            }
-            catch { /* fall through */ }
+                process.StartInfo.ArgumentList.Add(candidate);
+                process.Start();
+                var output = process.StandardOutput.ReadLine();
+                process.StandardError.ReadToEnd();
+                process.WaitForExit();
 
-            return exeName;
+                if (process.ExitCode != 0 || string.IsNullOrWhiteSpace(output))
+                    return false;
+
+                var path = output.Trim();
+                if (!File.Exists(path))
+                    return false;
+
+                resolvedPath = Path.GetFullPath(path);
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
         }
 
         /// <summary>
@@ -88,7 +116,7 @@ namespace Flow.Launcher.Plugin.QuickSSH
         /// illegal in Windows file names.
         /// Returns <see langword="null"/> if the result is empty.
         /// </summary>
-        public static string SanitizeKeyFileName(string alias)
+        public static string? SanitizeKeyFileName(string? alias)
         {
             if (string.IsNullOrWhiteSpace(alias))
                 return null;
@@ -109,7 +137,7 @@ namespace Flow.Launcher.Plugin.QuickSSH
         /// characters are handled correctly.
         /// Surrounding quotes on the custom path are stripped.
         /// </summary>
-        internal static (string alias, string customPath) ParseGenerateArgs(string rest)
+        internal static (string alias, string customPath) ParseGenerateArgs(string? rest)
         {
             if (string.IsNullOrEmpty(rest))
                 return ("", "");

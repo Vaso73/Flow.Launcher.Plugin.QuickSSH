@@ -15,32 +15,32 @@
 
     <!-- Shared / common -->
     <system:String x:Key="plugin_quickssh_noprofiles">Aucun profil enregistré.</system:String>
-    <system:String x:Key="plugin_quickssh_noshells">Aucun profil de shell enregistré.</system:String>
+    <system:String x:Key="plugin_quickssh_noshells">Aucun shell enregistré.</system:String>
     <system:String x:Key="plugin_quickssh_save_label">Enregistrer :</system:String>
     <system:String x:Key="plugin_quickssh_connect_label">Connecter :</system:String>
     <system:String x:Key="plugin_quickssh_addshell_label">Ajouter le shell :</system:String>
 
     <!-- PROFILES (list / connect) -->
-    <system:String x:Key="plugin_quickssh_title_commandprofiles">Gestion des profils</system:String>
-    <system:String x:Key="plugin_quickssh_subtitle_commandprofiles">Utilisation : profiles add | remove | rename | copy | export | import</system:String>
+    <system:String x:Key="plugin_quickssh_title_commandprofiles">Profils</system:String>
+    <system:String x:Key="plugin_quickssh_subtitle_commandprofiles">Se connecter à un serveur enregistré.</system:String>
 
     <!-- PROFILES ADD -->
     <system:String x:Key="plugin_quickssh_title_commandprofiles_add">Ajouter un profil</system:String>
-    <system:String x:Key="plugin_quickssh_subtitle_commandprofiles_add">Utilisation : profiles add &lt;nom&gt; &lt;commande-ssh&gt;</system:String>
+    <system:String x:Key="plugin_quickssh_subtitle_commandprofiles_add">Enregistrer une nouvelle commande SSH comme profil.</system:String>
 
     <!-- PROFILES REMOVE -->
     <system:String x:Key="plugin_quickssh_title_commandprofiles_remove">Supprimer un profil</system:String>
-    <system:String x:Key="plugin_quickssh_subtitle_commandprofiles_remove">Utilisation : profiles remove [filtre]</system:String>
+    <system:String x:Key="plugin_quickssh_subtitle_commandprofiles_remove">Sélectionner un profil et confirmer sa suppression.</system:String>
 
     <!-- PROFILES RENAME -->
     <system:String x:Key="plugin_quickssh_title_commandprofiles_rename">Renommer un profil</system:String>
-    <system:String x:Key="plugin_quickssh_subtitle_commandprofiles_rename">Utilisation : profiles rename &lt;ancien nom&gt; &lt;nouveau nom&gt;</system:String>
+    <system:String x:Key="plugin_quickssh_subtitle_commandprofiles_rename">Modifier le nom d’un profil enregistré.</system:String>
     <system:String x:Key="plugin_quickssh_rename_notfound">Profil introuvable.</system:String>
 
     <!-- PROFILES COPY -->
     <system:String x:Key="plugin_quickssh_title_commandprofiles_copy">Copier la commande SSH</system:String>
     <system:String x:Key="plugin_quickssh_subtitle_commandprofiles_copy">Copier :</system:String>
-    <system:String x:Key="plugin_quickssh_subtitle_commandprofiles_copy_usage">Utilisation : profiles copy [filtre]</system:String>
+    <system:String x:Key="plugin_quickssh_subtitle_commandprofiles_copy_usage">Copier la commande du profil sélectionné.</system:String>
     <system:String x:Key="plugin_quickssh_copy_clipboard_error">Impossible de copier dans le presse-papiers. Assurez-vous que Flow Launcher s'exécute sur le thread UI.</system:String>
     <system:String x:Key="plugin_quickssh_copy_command_success">Commande SSH copiée dans le presse-papiers.</system:String>
     <system:String x:Key="plugin_quickssh_copy_keypath_success">Chemin de la clé copié dans le presse-papiers.</system:String>
@@ -49,14 +49,16 @@
     <!-- PROFILES EXPORT -->
     <system:String x:Key="plugin_quickssh_title_commandprofiles_export">Exporter les profils</system:String>
     <system:String x:Key="plugin_quickssh_subtitle_commandprofiles_export">Exporter les profils vers : {0}</system:String>
-    <system:String x:Key="plugin_quickssh_subtitle_commandprofiles_export_usage">Utilisation : profiles export</system:String>
+    <system:String x:Key="plugin_quickssh_subtitle_commandprofiles_export_usage">Enregistrer les profils dans un fichier d’export.</system:String>
     <system:String x:Key="plugin_quickssh_export_success">Exporté {0} profil(s) vers {1}</system:String>
 
     <!-- PROFILES IMPORT -->
     <system:String x:Key="plugin_quickssh_title_commandprofiles_import">Importer des profils</system:String>
-    <system:String x:Key="plugin_quickssh_subtitle_commandprofiles_import_usage">Utilisation : profiles import [filtre]</system:String>
+    <system:String x:Key="plugin_quickssh_subtitle_commandprofiles_import_usage">Charger les profils depuis un fichier d’export.</system:String>
+    <system:String x:Key="plugin_quickssh_title_commandprofiles_manage">Gérer les profils</system:String>
+    <system:String x:Key="plugin_quickssh_subtitle_commandprofiles_manage">Ajouter et gérer les profils enregistrés.</system:String>
     <system:String x:Key="plugin_quickssh_import_nofiles">Aucun fichier .sshconfig ou .json trouvé dans : {0}</system:String>
-    <system:String x:Key="plugin_quickssh_import_success">Importé {0} profil(s) avec succès.</system:String>
+    <system:String x:Key="plugin_quickssh_import_success">Profils importés : {0} ; profils existants ignorés : {1}.</system:String>
     <system:String x:Key="plugin_quickssh_import_empty">Aucun profil trouvé dans le fichier sélectionné.</system:String>
 
     <!-- DIRECT CONNECT -->
@@ -65,16 +67,16 @@
     <system:String x:Key="plugin_quickssh_subtitle_commanddirectconnect_usage">Utilisation : ssh root@host  |  ssh -p 22 root@host  |  ssh -i "key" root@host</system:String>
 
     <!-- SHELL -->
-    <system:String x:Key="plugin_quickssh_title_commandshell">Gestion des shells</system:String>
-    <system:String x:Key="plugin_quickssh_title_commandshell_add">Ajouter un profil de shell</system:String>
-    <system:String x:Key="plugin_quickssh_subtitle_commandshell_add_usage">Utilisation : shell add &lt;exe&gt; ou shell add &lt;nom&gt; &lt;exe + args&gt;</system:String>
-    <system:String x:Key="plugin_quickssh_title_commandshell_remove">Supprimer un profil de shell</system:String>
-    <system:String x:Key="plugin_quickssh_subtitle_commandshell_remove">Utilisation : shell remove [filtre]</system:String>
-    <system:String x:Key="plugin_quickssh_subtitle_commandshell_help">Utilisation : shell add ; remove</system:String>
+    <system:String x:Key="plugin_quickssh_title_commandshell">Shell</system:String>
+    <system:String x:Key="plugin_quickssh_title_commandshell_add">Ajouter un shell</system:String>
+    <system:String x:Key="plugin_quickssh_subtitle_commandshell_add_usage">Enregistrer un nouveau shell pour exécuter les commandes.</system:String>
+    <system:String x:Key="plugin_quickssh_title_commandshell_remove">Supprimer le shell</system:String>
+    <system:String x:Key="plugin_quickssh_subtitle_commandshell_remove">Sélectionner un shell enregistré et le supprimer.</system:String>
+    <system:String x:Key="plugin_quickssh_subtitle_commandshell_help">Choisir ou gérer un shell.</system:String>
     <system:String x:Key="plugin_quickssh_shell_selected">(sélectionné)</system:String>
 
     <!-- CONFIG -->
-    <system:String x:Key="plugin_quickssh_title_commandconfig">Importer la config SSH</system:String>
+    <system:String x:Key="plugin_quickssh_title_commandconfig">Importer la configuration SSH</system:String>
     <system:String x:Key="plugin_quickssh_subtitle_commandconfig">Importer les hôtes depuis le fichier ~/.ssh/config.</system:String>
     <system:String x:Key="plugin_quickssh_subtitle_commandconfig_usage">Utilisation : config  (importe depuis ~/.ssh/config)</system:String>
     <system:String x:Key="plugin_quickssh_config_imported">Importé {0} hôte(s) depuis la config SSH.</system:String>
@@ -86,26 +88,82 @@
     <system:String x:Key="plugin_quickssh_subtitle_commandhelp_usage">Utilisation : help</system:String>
 
     <!-- Label appended to legacy .json import files -->
-    <system:String x:Key="plugin_quickssh_import_legacy_label">(legacy)</system:String>
+    <system:String x:Key="plugin_quickssh_import_legacy_label">(ancien format)</system:String>
 
     <!-- LEGACY ADD REDIRECT -->
-    <system:String x:Key="plugin_quickssh_title_commandadd_legacy">Command renamed: use "profiles add"</system:String>
-    <system:String x:Key="plugin_quickssh_subtitle_commandadd_legacy">The "add" command is now "profiles add &lt;name&gt; &lt;ssh-command&gt;". Press Enter or Tab to navigate.</system:String>
+    <system:String x:Key="plugin_quickssh_title_commandadd_legacy">Commande renommée : utilisez « profiles add »</system:String>
+    <system:String x:Key="plugin_quickssh_subtitle_commandadd_legacy">La commande « add » s’appelle désormais « profiles add &lt;nom&gt; &lt;commande-ssh&gt; ». Appuyez sur Entrée pour continuer.</system:String>
 
     <!-- BACK NAVIGATION -->
-    <system:String x:Key="plugin_quickssh_back_nav_title">← Retour à {0}</system:String>
+    <system:String x:Key="plugin_quickssh_back_nav_title">← Retour {0}</system:String>
+
+
+    <!-- ACTIONS -->
+    <system:String x:Key="plugin_quickssh_title_commandactions">Actions</system:String>
+    <system:String x:Key="plugin_quickssh_subtitle_commandactions">Exécuter des commandes distantes enregistrées via des profils SSH.</system:String>
+    <system:String x:Key="plugin_quickssh_title_commandactions_run">Exécuter l’action</system:String>
+    <system:String x:Key="plugin_quickssh_subtitle_commandactions_run">Sélectionnez un profil SSH puis une action.</system:String>
+    <system:String x:Key="plugin_quickssh_title_commandactions_add">Ajouter une action</system:String>
+    <system:String x:Key="plugin_quickssh_subtitle_commandactions_add">Enregistrer une nouvelle commande distante.</system:String>
+    <system:String x:Key="plugin_quickssh_title_commandactions_remove">Supprimer une action</system:String>
+    <system:String x:Key="plugin_quickssh_subtitle_commandactions_remove">Sélectionner une action et confirmer sa suppression.</system:String>
+    <system:String x:Key="plugin_quickssh_title_commandactions_rename">Renommer une action</system:String>
+    <system:String x:Key="plugin_quickssh_subtitle_commandactions_rename">Modifier le nom d’une action enregistrée.</system:String>
+    <system:String x:Key="plugin_quickssh_noactions">Aucune action SSH enregistrée.</system:String>
+    <system:String x:Key="plugin_quickssh_actions_add_first">Ajouter la première action</system:String>
+    <system:String x:Key="plugin_quickssh_actions_empty_title">Aucune action SSH pour le moment</system:String>
+    <system:String x:Key="plugin_quickssh_actions_empty_subtitle">Enregistrez une commande distante à exécuter via un profil SSH.</system:String>
+    <system:String x:Key="plugin_quickssh_actions_saved_title">Action enregistrée : {0}</system:String>
+    <system:String x:Key="plugin_quickssh_actions_save_title">Enregistrer l’action « {0} »</system:String>
+    <system:String x:Key="plugin_quickssh_actions_rejected">Action refusée : utilisez une seule ligne et n’incluez jamais de clé privée.</system:String>
+    <system:String x:Key="plugin_quickssh_actions_notfound">Action introuvable.</system:String>
+    <system:String x:Key="plugin_quickssh_actions_profile_notfound">Profil SSH introuvable ou profil SCP.</system:String>
+    <system:String x:Key="plugin_quickssh_actions_no_profiles">Enregistrez un profil SSH avant d’exécuter des actions.</system:String>
+    <system:String x:Key="plugin_quickssh_actions_add_profile">Ajouter un profil SSH</system:String>
+    <system:String x:Key="plugin_quickssh_actions_profile_label">Profil : {0}</system:String>
+    <system:String x:Key="plugin_quickssh_actions_action_label">Action : {0}</system:String>
+    <system:String x:Key="plugin_quickssh_actions_execute_title">Exécuter l’action</system:String>
+    <system:String x:Key="plugin_quickssh_actions_select_profile_subtitle">Sélectionnez le profil SSH qui exécutera l’action.</system:String>
+    <system:String x:Key="plugin_quickssh_actions_select_action_subtitle">Sélectionnez la commande distante à exécuter.</system:String>
+    <system:String x:Key="plugin_quickssh_actions_confirm_subtitle">Vérifiez le profil et la commande distante.</system:String>
+    <system:String x:Key="plugin_quickssh_actions_command_label">Commande SSH</system:String>
+    <system:String x:Key="plugin_quickssh_actions_execute_subtitle">Exécuter « {0} » via le profil « {1} ».</system:String>
+    <system:String x:Key="plugin_quickssh_actions_cannot_run">Impossible d’exécuter l’action</system:String>
+    <system:String x:Key="plugin_quickssh_actions_unsupported">Le profil ou l’action est incomplet ou non pris en charge.</system:String>
+    <system:String x:Key="plugin_quickssh_actions_remove_confirm">Supprimer l’action « {0} »</system:String>
+    <system:String x:Key="plugin_quickssh_name_invalid">Utilisez 1 à 64 lettres ou chiffres et uniquement point, tiret ou soulignement.</system:String>
+    <system:String x:Key="plugin_quickssh_name_reserved">Ce nom est réservé par QuickSSH.</system:String>
+    <system:String x:Key="plugin_quickssh_name_exists">Un élément portant ce nom existe déjà.</system:String>
+    <system:String x:Key="plugin_quickssh_profiles_add_template_title">Compléter l’exemple de profil</system:String>
+    <system:String x:Key="plugin_quickssh_profiles_add_template_subtitle">server ssh user@host</system:String>
+    <system:String x:Key="plugin_quickssh_actions_add_template_title">Compléter l’exemple d’action</system:String>
+    <system:String x:Key="plugin_quickssh_actions_add_template_subtitle">check hostname</system:String>
+    <system:String x:Key="plugin_quickssh_keys_add_template_title">Compléter l’exemple de clé SSH</system:String>
+    <system:String x:Key="plugin_quickssh_keys_add_template_subtitle">server-key ~/.ssh/private_key</system:String>
+    <system:String x:Key="plugin_quickssh_profiles_save_title">Enregistrer le profil « {0} »</system:String>
+
+    <system:String x:Key="plugin_quickssh_title_commandactions_manage">Gérer les actions</system:String>
+    <system:String x:Key="plugin_quickssh_subtitle_commandactions_manage">Ajouter et gérer les actions enregistrées.</system:String>
+    <system:String x:Key="plugin_quickssh_actions_select_profile_for_action">Sélectionnez un profil SSH pour « {0} ».</system:String>
+    <system:String x:Key="plugin_quickssh_actions_confirm_title">Confirmer l’exécution</system:String>
+    <system:String x:Key="plugin_quickssh_actions_execute_named_title">Exécuter « {0} »</system:String>
+    <system:String x:Key="plugin_quickssh_actions_execute_named_subtitle">Exécuter via le profil « {0} ».</system:String>
 
     <!-- KEYS (SSH key management) -->
-    <system:String x:Key="plugin_quickssh_title_commandkeys">Gestion des clés SSH</system:String>
-    <system:String x:Key="plugin_quickssh_subtitle_commandkeys">Utilisation : keys install | add | generate | remove | rename | copy-path | copy-pub | scan</system:String>
+    <system:String x:Key="plugin_quickssh_title_commandkeys">Clés SSH</system:String>
+    <system:String x:Key="plugin_quickssh_subtitle_commandkeys">Installer des clés publiques ou gérer les clés SSH enregistrées.</system:String>
+    <system:String x:Key="plugin_quickssh_title_commandkeys_manage">Gérer les clés SSH</system:String>
+    <system:String x:Key="plugin_quickssh_subtitle_commandkeys_manage">Ajouter et gérer les clés SSH enregistrées.</system:String>
+    <system:String x:Key="plugin_quickssh_keys_public_path_label">Clé publique •</system:String>
+    <system:String x:Key="plugin_quickssh_keys_private_path_label">Clé privée •</system:String>
     <system:String x:Key="plugin_quickssh_title_commandkeys_add">Enregistrer une clé SSH</system:String>
-    <system:String x:Key="plugin_quickssh_subtitle_commandkeys_add">Utilisation : keys add &lt;alias&gt; &lt;chemin-clé&gt;</system:String>
+    <system:String x:Key="plugin_quickssh_subtitle_commandkeys_add">Enregistrer une clé privée existante sous un nom personnalisé.</system:String>
     <system:String x:Key="plugin_quickssh_title_commandkeys_generate">Générer une paire de clés SSH</system:String>
-    <system:String x:Key="plugin_quickssh_subtitle_commandkeys_generate">Utilisation : keys generate &lt;alias&gt; [chemin-personnalisé]</system:String>
+    <system:String x:Key="plugin_quickssh_subtitle_commandkeys_generate">Créer une nouvelle paire de clés privée et publique.</system:String>
     <system:String x:Key="plugin_quickssh_keys_generate_confirm">Générer : {0}</system:String>
     <system:String x:Key="plugin_quickssh_keys_generate_subtitle">{0} → {1} (sans phrase secrète)</system:String>
-    <system:String x:Key="plugin_quickssh_keys_generate_invalid_alias">Alias invalide — ne contient que des caractères non valides.</system:String>
-    <system:String x:Key="plugin_quickssh_keys_generate_duplicate">L'alias existe déjà : {0}</system:String>
+    <system:String x:Key="plugin_quickssh_keys_generate_invalid_alias">Nom de clé invalide — ne contient que des caractères non valides.</system:String>
+    <system:String x:Key="plugin_quickssh_keys_generate_duplicate">Une clé portant ce nom existe déjà : {0}</system:String>
     <system:String x:Key="plugin_quickssh_keys_generate_file_exists">Le fichier de clé existe déjà : {0}</system:String>
     <system:String x:Key="plugin_quickssh_keys_generate_invalid_path">Chemin invalide : {0}</system:String>
     <system:String x:Key="plugin_quickssh_keys_generate_path_is_directory">Le chemin est un répertoire, pas un fichier de clé : {0}</system:String>
@@ -117,24 +175,24 @@ Privée : {1}
 Publique : {2}</system:String>
     <system:String x:Key="plugin_quickssh_keys_generate_failed">Génération de clé annulée ou échouée.</system:String>
     <system:String x:Key="plugin_quickssh_keys_generate_failed_detail">Échec de la génération de clé : {0}</system:String>
-    <system:String x:Key="plugin_quickssh_title_commandkeys_remove">Supprimer une clé SSH</system:String>
-    <system:String x:Key="plugin_quickssh_subtitle_commandkeys_remove">Utilisation : keys remove [filtre]</system:String>
-    <system:String x:Key="plugin_quickssh_keys_remove_success">Alias de clé SSH supprimé : {0}
-Entrée de registre supprimée uniquement.
-Fichiers conservés sur le disque : {1}</system:String>
-    <system:String x:Key="plugin_quickssh_title_commandkeys_rename">Renommer l'alias de clé</system:String>
-    <system:String x:Key="plugin_quickssh_subtitle_commandkeys_rename">Utilisation : keys rename &lt;ancien-alias&gt; &lt;nouvel-alias&gt;</system:String>
-    <system:String x:Key="plugin_quickssh_keys_rename_notfound">Alias de clé introuvable.</system:String>
-    <system:String x:Key="plugin_quickssh_keys_rename_duplicate">Un alias avec ce nom existe déjà.</system:String>
+    <system:String x:Key="plugin_quickssh_title_commandkeys_remove">Supprimer la clé enregistrée</system:String>
+    <system:String x:Key="plugin_quickssh_subtitle_commandkeys_remove">La retirer de la liste ; le fichier de clé reste inchangé.</system:String>
+    <system:String x:Key="plugin_quickssh_keys_remove_success">Clé SSH enregistrée supprimée : {0}
+Seule l’entrée enregistrée a été supprimée.
+Fichiers laissés inchangés : {1}</system:String>
+    <system:String x:Key="plugin_quickssh_title_commandkeys_rename">Renommer la clé</system:String>
+    <system:String x:Key="plugin_quickssh_subtitle_commandkeys_rename">Modifier le nom d’une clé enregistrée.</system:String>
+    <system:String x:Key="plugin_quickssh_keys_rename_notfound">Clé enregistrée introuvable.</system:String>
+    <system:String x:Key="plugin_quickssh_keys_rename_duplicate">Une clé portant ce nom existe déjà.</system:String>
     <system:String x:Key="plugin_quickssh_title_commandkeys_copypath">Copier le chemin de la clé</system:String>
-    <system:String x:Key="plugin_quickssh_subtitle_commandkeys_copypath">Utilisation : keys copy-path [filtre]</system:String>
+    <system:String x:Key="plugin_quickssh_subtitle_commandkeys_copypath">Copier le chemin complet de la clé privée.</system:String>
     <system:String x:Key="plugin_quickssh_keys_copypath_label">Copier le chemin :</system:String>
     <system:String x:Key="plugin_quickssh_title_commandkeys_copypub">Copier la clé publique</system:String>
-    <system:String x:Key="plugin_quickssh_subtitle_commandkeys_copypub">Utilisation : keys copy-pub [filtre]</system:String>
+    <system:String x:Key="plugin_quickssh_subtitle_commandkeys_copypub">Copier le contenu de la clé publique.</system:String>
     <system:String x:Key="plugin_quickssh_keys_copypub_label">Copier .pub :</system:String>
     <system:String x:Key="plugin_quickssh_keys_copypub_notfound">Fichier de clé publique (.pub) introuvable :</system:String>
     <system:String x:Key="plugin_quickssh_title_commandkeys_scan">Rechercher des clés</system:String>
-    <system:String x:Key="plugin_quickssh_subtitle_commandkeys_scan">Analyser ~/.ssh/ pour les fichiers de clés</system:String>
+    <system:String x:Key="plugin_quickssh_subtitle_commandkeys_scan">Rechercher les clés SSH existantes dans ~/.ssh.</system:String>
     <system:String x:Key="plugin_quickssh_keys_scan_nodir">Répertoire ~/.ssh/ introuvable.</system:String>
     <system:String x:Key="plugin_quickssh_keys_scan_empty">Aucun fichier de clé trouvé dans ~/.ssh/</system:String>
     <system:String x:Key="plugin_quickssh_keys_scan_registered">(déjà enregistré)</system:String>
@@ -143,4 +201,114 @@ Fichiers conservés sur le disque : {1}</system:String>
     <system:String x:Key="plugin_quickssh_keys_file_missing">(fichier introuvable)</system:String>
     <system:String x:Key="plugin_quickssh_keys_identity">Fichier d'identité :</system:String>
 
+    <!-- KEYS INSTALL -->
+    <system:String x:Key="plugin_quickssh_title_commandkeys_install">Installer la clé publique</system:String>
+    <system:String x:Key="plugin_quickssh_subtitle_commandkeys_install">Ajouter la clé sélectionnée à un serveur Linux distant.</system:String>
+    <system:String x:Key="plugin_quickssh_keys_install_type_userhost">Tapez : {0} keys install {1} user@host</system:String>
+    <system:String x:Key="plugin_quickssh_keys_install_select_profile">Sélectionnez un profil SSH enregistré ou saisissez user@host manuellement.</system:String>
+    <system:String x:Key="plugin_quickssh_keys_install_manual_destination">Saisir la destination manuellement</system:String>
+    <system:String x:Key="plugin_quickssh_keys_install_profile_unsupported">Ce profil ne peut pas être utilisé pour installer une clé.</system:String>
+    <system:String x:Key="plugin_quickssh_keys_install_summary">Installer "{0}" → {1}</system:String>
+    <system:String x:Key="plugin_quickssh_keys_install_run">Exécuter la commande de configuration distante</system:String>
+    <system:String x:Key="plugin_quickssh_keys_install_copy_cmd">Copier la commande de configuration distante</system:String>
+    <system:String x:Key="plugin_quickssh_keys_install_copy_pub">Copier la clé publique</system:String>
+    <system:String x:Key="plugin_quickssh_keys_install_copy_cmd_subtitle">Copier la commande SSH complète dans le presse-papiers</system:String>
+    <system:String x:Key="plugin_quickssh_keys_install_copy_pub_subtitle">Copier la clé publique qui sera ajoutée au serveur distant</system:String>
+    <system:String x:Key="plugin_quickssh_keys_install_alias_notfound">Clé enregistrée introuvable : {0}</system:String>
+    <system:String x:Key="plugin_quickssh_keys_install_pub_notfound">Fichier de clé publique introuvable : {0}</system:String>
+    <system:String x:Key="plugin_quickssh_keys_install_pub_invalid">Le contenu du fichier de clé publique est invalide ou non sûr.</system:String>
+    <system:String x:Key="plugin_quickssh_keys_install_invalid_destination">Destination invalide — format user@host attendu.</system:String>
+    <system:String x:Key="plugin_quickssh_keys_install_copy_cmd_success">Commande de configuration distante copiée dans le presse-papiers.</system:String>
+
+    <system:String x:Key="plugin_quickssh_title_commandtools">Outils</system:String>
+    <system:String x:Key="plugin_quickssh_subtitle_root_profiles">Se connecter à un serveur enregistré.</system:String>
+    <system:String x:Key="plugin_quickssh_subtitle_root_actions">Exécuter une commande distante enregistrée.</system:String>
+    <system:String x:Key="plugin_quickssh_subtitle_root_tools">Clés SSH, shell et import de configuration.</system:String>
+    <system:String x:Key="plugin_quickssh_subtitle_root_help">Documentation et aperçu des commandes.</system:String>
+    <system:String x:Key="plugin_quickssh_back_root_label">au menu principal</system:String>
+    <system:String x:Key="plugin_quickssh_subtitle_tools_keys">Utiliser ou gérer les clés SSH.</system:String>
+    <system:String x:Key="plugin_quickssh_subtitle_tools_shell">Choisir ou gérer le shell utilisé pour exécuter les commandes.</system:String>
+    <system:String x:Key="plugin_quickssh_subtitle_tools_config">Importer les profils depuis ~/.ssh/config.</system:String>
+
+    <!-- Consolidated navigation and action UX -->
+    <system:String x:Key="plugin_quickssh_title_commandshell_manage">Gérer les shells</system:String>
+    <system:String x:Key="plugin_quickssh_actions_execute_summary">Via le profil « {0} » • {1}</system:String>
+    <system:String x:Key="plugin_quickssh_actions_copy_command_title">Copier la commande SSH</system:String>
+    <system:String x:Key="plugin_quickssh_back_profiles_label">aux profils</system:String>
+    <system:String x:Key="plugin_quickssh_back_profiles_manage_label">à la gestion des profils</system:String>
+    <system:String x:Key="plugin_quickssh_back_actions_label">aux actions</system:String>
+    <system:String x:Key="plugin_quickssh_back_actions_manage_label">à la gestion des actions</system:String>
+    <system:String x:Key="plugin_quickssh_back_actions_profile_selection_label">à la sélection du profil</system:String>
+    <system:String x:Key="plugin_quickssh_back_actions_action_selection_label">à la sélection de l’action</system:String>
+    <system:String x:Key="plugin_quickssh_back_keys_label">aux clés SSH</system:String>
+    <system:String x:Key="plugin_quickssh_back_keys_manage_label">à la gestion des clés SSH</system:String>
+    <system:String x:Key="plugin_quickssh_back_shell_label">au shell</system:String>
+    <system:String x:Key="plugin_quickssh_back_shell_manage_label">à la gestion des shells</system:String>
+    <system:String x:Key="plugin_quickssh_back_tools_label">aux outils</system:String>
+    <system:String x:Key="plugin_quickssh_back_profiles_selection_label">à la sélection du profil</system:String>
+    <system:String x:Key="plugin_quickssh_profiles_remove_confirm">Supprimer le profil « {0} »</system:String>
+
+    <system:String x:Key="plugin_quickssh_wizard_profiles_add_name_title">Insérer un exemple de nom : « {0} »</system:String>
+    <system:String x:Key="plugin_quickssh_wizard_profiles_add_name_subtitle">Étape 1 sur 4 • Ou saisissez votre propre nom de profil ci-dessus.</system:String>
+    <system:String x:Key="plugin_quickssh_wizard_profiles_add_command_title">Étape 2 sur 2 : saisir la commande SSH</system:String>
+    <system:String x:Key="plugin_quickssh_wizard_profiles_add_command_subtitle">Après le nom, saisissez par exemple « ssh user@host ».</system:String>
+    <system:String x:Key="plugin_quickssh_wizard_actions_add_name_title">Insérer un exemple de nom : « {0} »</system:String>
+    <system:String x:Key="plugin_quickssh_wizard_actions_add_name_subtitle">Étape 1 sur 2 • Ou saisissez votre propre nom d’action ci-dessus.</system:String>
+    <system:String x:Key="plugin_quickssh_wizard_actions_add_command_title">Insérer un exemple de commande : « hostname »</system:String>
+    <system:String x:Key="plugin_quickssh_wizard_actions_add_command_subtitle">Étape 2 sur 2 • Ou saisissez votre propre commande distante ci-dessus.</system:String>
+    <system:String x:Key="plugin_quickssh_wizard_keys_add_name_title">Insérer un exemple de nom : « {0} »</system:String>
+    <system:String x:Key="plugin_quickssh_wizard_keys_add_name_subtitle">Étape 1 sur 2 • Ou saisissez votre propre nom de clé ci-dessus.</system:String>
+    <system:String x:Key="plugin_quickssh_wizard_keys_add_path_title">Insérer un exemple de chemin : « ~/.ssh/private_key »</system:String>
+    <system:String x:Key="plugin_quickssh_wizard_keys_add_path_subtitle">Étape 2 sur 2 • Ou saisissez le chemin de votre clé privée ci-dessus.</system:String>
+    <system:String x:Key="plugin_quickssh_wizard_shell_add_name_title">Insérer un exemple de nom : « {0} »</system:String>
+    <system:String x:Key="plugin_quickssh_wizard_shell_add_name_subtitle">Étape 1 sur 2 • Ou saisissez votre propre nom de shell ci-dessus.</system:String>
+    <system:String x:Key="plugin_quickssh_wizard_shell_add_command_title">Insérer un exemple de programme : « pwsh.exe -NoLogo »</system:String>
+    <system:String x:Key="plugin_quickssh_wizard_shell_add_command_subtitle">Étape 2 sur 2 • Ou saisissez un programme et des arguments facultatifs ci-dessus.</system:String>
+    <system:String x:Key="plugin_quickssh_wizard_shell_use_name_subtitle">Utiliser aussi « {0} » comme nom du programme.</system:String>
+    <system:String x:Key="plugin_quickssh_wizard_profiles_rename_title">Insérer le nouveau nom proposé : « {0} »</system:String>
+    <system:String x:Key="plugin_quickssh_wizard_profiles_rename_subtitle">Nom actuel : « {0} ». Ou saisissez votre propre nouveau nom ci-dessus.</system:String>
+    <system:String x:Key="plugin_quickssh_wizard_actions_rename_title">Insérer le nouveau nom proposé : « {0} »</system:String>
+    <system:String x:Key="plugin_quickssh_wizard_actions_rename_subtitle">Nom actuel : « {0} ». Ou saisissez votre propre nouveau nom ci-dessus.</system:String>
+    <system:String x:Key="plugin_quickssh_wizard_keys_rename_title">Insérer le nouveau nom proposé : « {0} »</system:String>
+    <system:String x:Key="plugin_quickssh_wizard_keys_rename_subtitle">Nom actuel : « {0} ». Ou saisissez votre propre nouveau nom ci-dessus.</system:String>
+    <system:String x:Key="plugin_quickssh_name_unchanged">Le nouveau nom est identique au nom actuel.</system:String>
+    <system:String x:Key="plugin_quickssh_command_invalid">Saisissez une commande SSH valide.</system:String>
+    <system:String x:Key="plugin_quickssh_profiles_rename_confirm_title">Renommer « {0} » en « {1} »</system:String>
+    <system:String x:Key="plugin_quickssh_profiles_rename_confirm_subtitle">La commande SSH et les paramètres du profil resteront inchangés.</system:String>
+    <system:String x:Key="plugin_quickssh_actions_rename_confirm_title">Renommer « {0} » en « {1} »</system:String>
+    <system:String x:Key="plugin_quickssh_actions_rename_confirm_subtitle">La commande distante restera inchangée.</system:String>
+    <system:String x:Key="plugin_quickssh_keys_rename_confirm_title">Renommer « {0} » en « {1} »</system:String>
+    <system:String x:Key="plugin_quickssh_keys_rename_confirm_subtitle">Le fichier de clé et son chemin resteront inchangés.</system:String>
+    <system:String x:Key="plugin_quickssh_keys_path_missing_title">Le chemin de la clé n’existe pas</system:String>
+    <system:String x:Key="plugin_quickssh_keys_save_title">Enregistrer la clé « {0} »</system:String>
+    <system:String x:Key="plugin_quickssh_shell_save_title">Enregistrer le shell « {0} »</system:String>
+    <system:String x:Key="plugin_quickssh_wizard_profiles_add_target_title">Insérer un exemple de serveur : « user@host »</system:String>
+    <system:String x:Key="plugin_quickssh_wizard_profiles_add_target_subtitle">Étape 2 sur 4 • Ou saisissez votre propre cible ci-dessus, par exemple vaio@10.0.0.10.</system:String>
+    <system:String x:Key="plugin_quickssh_profiles_port_default_title">Utiliser le port 22 par défaut</system:String>
+    <system:String x:Key="plugin_quickssh_profiles_port_default_subtitle">Étape 3 sur 4 • Port SSH standard ; il ne sera pas enregistré explicitement.</system:String>
+    <system:String x:Key="plugin_quickssh_profiles_port_custom_title">Saisir un autre port</system:String>
+    <system:String x:Key="plugin_quickssh_profiles_port_custom_subtitle">Étape 3 sur 4 • Saisissez un nombre de 1 à 65535.</system:String>
+    <system:String x:Key="plugin_quickssh_profiles_port_invalid_title">Port SSH invalide</system:String>
+    <system:String x:Key="plugin_quickssh_profiles_port_invalid_subtitle">Saisissez un nombre entier de 1 à 65535.</system:String>
+    <system:String x:Key="plugin_quickssh_wizard_profiles_add_auth_title">Étape 4 sur 4 : Choisissez la connexion</system:String>
+    <system:String x:Key="plugin_quickssh_wizard_profiles_add_auth_subtitle">Sélectionnez une clé privée enregistrée ou utilisez l’agent/la configuration SSH.</system:String>
+    <system:String x:Key="plugin_quickssh_profiles_auth_default_title">Utiliser l’agent ou la configuration SSH</system:String>
+    <system:String x:Key="plugin_quickssh_profiles_auth_default_subtitle">Enregistrer le profil sans imposer de clé privée précise.</system:String>
+    <system:String x:Key="plugin_quickssh_profiles_auth_advanced_title">Saisir une commande SSH complète</system:String>
+    <system:String x:Key="plugin_quickssh_profiles_auth_advanced_subtitle">À utiliser pour les tunnels, SCP, ProxyJump ou d’autres options avancées.</system:String>
+    <system:String x:Key="plugin_quickssh_profiles_no_private_keys_title">Aucune clé privée utilisable enregistrée</system:String>
+    <system:String x:Key="plugin_quickssh_profiles_no_private_keys_subtitle">Ajoutez ou générez une clé privée, ou continuez sans clé.</system:String>
+    <system:String x:Key="plugin_quickssh_profiles_key_missing_subtitle">Fichier de clé privée introuvable : {0}</system:String>
+    <system:String x:Key="plugin_quickssh_profiles_key_public_subtitle">Une clé publique ne peut pas servir à la connexion. Sélectionnez sa clé privée : {0}</system:String>
+    <system:String x:Key="plugin_quickssh_profiles_key_invalid_subtitle">Le fichier n’est pas reconnu comme une clé SSH privée : {0}</system:String>
+    <system:String x:Key="plugin_quickssh_profiles_key_notfound">Clé privée enregistrée introuvable.</system:String>
+    <system:String x:Key="plugin_quickssh_profiles_destination_invalid">Saisissez un serveur valide sous la forme utilisateur@hôte ou hôte.</system:String>
+    <system:String x:Key="plugin_quickssh_wizard_profiles_rename_prefilled_subtitle">Modifiez le dernier « {0} » ou utilisez le nom proposé.</system:String>
+    <system:String x:Key="plugin_quickssh_wizard_actions_rename_prefilled_subtitle">Modifiez le dernier « {0} » ou utilisez le nom proposé.</system:String>
+    <system:String x:Key="plugin_quickssh_wizard_keys_rename_prefilled_subtitle">Modifiez le dernier « {0} » ou utilisez le nom proposé.</system:String>
+
+    <system:String x:Key="plugin_quickssh_shell_selected_missing">Le shell sélectionné « {0} » n’existe plus. La commande n’a pas été exécutée.</system:String>
+    <system:String x:Key="plugin_quickssh_shell_definition_invalid">Le shell « {0} » contient une définition de programme non valide. La commande n’a pas été exécutée.</system:String>
+    <system:String x:Key="plugin_quickssh_shell_executable_missing">Le programme du shell « {0} » est introuvable. La commande n’a pas été exécutée.</system:String>
+    <system:String x:Key="plugin_quickssh_shell_start_failed">Le shell « {0} » n’a pas pu être démarré. La commande n’a pas été exécutée. Erreur : {1}</system:String>
 </ResourceDictionary>

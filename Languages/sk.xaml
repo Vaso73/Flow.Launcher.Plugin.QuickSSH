@@ -15,32 +15,32 @@
 
     <!-- Shared / common -->
     <system:String x:Key="plugin_quickssh_noprofiles">Žiadne profily neboli uložené.</system:String>
-    <system:String x:Key="plugin_quickssh_noshells">Žiadne shell profily neboli uložené.</system:String>
+    <system:String x:Key="plugin_quickssh_noshells">Žiadne shelly neboli uložené.</system:String>
     <system:String x:Key="plugin_quickssh_save_label">Uložiť:</system:String>
     <system:String x:Key="plugin_quickssh_connect_label">Pripojiť:</system:String>
     <system:String x:Key="plugin_quickssh_addshell_label">Pridať shell:</system:String>
 
     <!-- PROFILES (list / connect) -->
-    <system:String x:Key="plugin_quickssh_title_commandprofiles">Správa profilov</system:String>
-    <system:String x:Key="plugin_quickssh_subtitle_commandprofiles">Použitie: profiles add | remove | rename | copy | export | import</system:String>
+    <system:String x:Key="plugin_quickssh_title_commandprofiles">Profily</system:String>
+    <system:String x:Key="plugin_quickssh_subtitle_commandprofiles">Pripojiť sa k uloženému serveru.</system:String>
 
     <!-- PROFILES ADD -->
     <system:String x:Key="plugin_quickssh_title_commandprofiles_add">Pridať profil</system:String>
-    <system:String x:Key="plugin_quickssh_subtitle_commandprofiles_add">Použitie: profiles add &lt;názov&gt; &lt;ssh-príkaz&gt;</system:String>
+    <system:String x:Key="plugin_quickssh_subtitle_commandprofiles_add">Uložiť nový SSH príkaz ako profil.</system:String>
 
     <!-- PROFILES REMOVE -->
     <system:String x:Key="plugin_quickssh_title_commandprofiles_remove">Odstrániť profil</system:String>
-    <system:String x:Key="plugin_quickssh_subtitle_commandprofiles_remove">Použitie: profiles remove [filter]</system:String>
+    <system:String x:Key="plugin_quickssh_subtitle_commandprofiles_remove">Vybrať profil a potvrdiť jeho odstránenie.</system:String>
 
     <!-- PROFILES RENAME -->
     <system:String x:Key="plugin_quickssh_title_commandprofiles_rename">Premenovať profil</system:String>
-    <system:String x:Key="plugin_quickssh_subtitle_commandprofiles_rename">Použitie: profiles rename &lt;starý názov&gt; &lt;nový názov&gt;</system:String>
+    <system:String x:Key="plugin_quickssh_subtitle_commandprofiles_rename">Zmeniť názov uloženého profilu.</system:String>
     <system:String x:Key="plugin_quickssh_rename_notfound">Profil sa nenašiel.</system:String>
 
     <!-- PROFILES COPY -->
     <system:String x:Key="plugin_quickssh_title_commandprofiles_copy">Kopírovať SSH príkaz</system:String>
     <system:String x:Key="plugin_quickssh_subtitle_commandprofiles_copy">Kopírovať:</system:String>
-    <system:String x:Key="plugin_quickssh_subtitle_commandprofiles_copy_usage">Použitie: profiles copy [filter]</system:String>
+    <system:String x:Key="plugin_quickssh_subtitle_commandprofiles_copy_usage">Skopírovať príkaz vybraného profilu.</system:String>
     <system:String x:Key="plugin_quickssh_copy_clipboard_error">Nepodarilo sa skopírovať do schránky. Uistite sa, že Flow Launcher beží na UI vlákne.</system:String>
     <system:String x:Key="plugin_quickssh_copy_command_success">SSH príkaz skopírovaný do schránky.</system:String>
     <system:String x:Key="plugin_quickssh_copy_keypath_success">Cesta ku kľúču skopírovaná do schránky.</system:String>
@@ -49,14 +49,16 @@
     <!-- PROFILES EXPORT -->
     <system:String x:Key="plugin_quickssh_title_commandprofiles_export">Exportovať profily</system:String>
     <system:String x:Key="plugin_quickssh_subtitle_commandprofiles_export">Exportovať profily do: {0}</system:String>
-    <system:String x:Key="plugin_quickssh_subtitle_commandprofiles_export_usage">Použitie: profiles export</system:String>
+    <system:String x:Key="plugin_quickssh_subtitle_commandprofiles_export_usage">Uložiť profily do exportného súboru.</system:String>
     <system:String x:Key="plugin_quickssh_export_success">Exportovaných {0} profil(ov) do {1}</system:String>
 
     <!-- PROFILES IMPORT -->
     <system:String x:Key="plugin_quickssh_title_commandprofiles_import">Importovať profily</system:String>
-    <system:String x:Key="plugin_quickssh_subtitle_commandprofiles_import_usage">Použitie: profiles import [filter]</system:String>
+    <system:String x:Key="plugin_quickssh_subtitle_commandprofiles_import_usage">Načítať profily z exportného súboru.</system:String>
+    <system:String x:Key="plugin_quickssh_title_commandprofiles_manage">Spravovať profily</system:String>
+    <system:String x:Key="plugin_quickssh_subtitle_commandprofiles_manage">Pridávať a spravovať uložené profily.</system:String>
     <system:String x:Key="plugin_quickssh_import_nofiles">Žiadne súbory .sshconfig alebo .json nenájdené v: {0}</system:String>
-    <system:String x:Key="plugin_quickssh_import_success">Importovaných {0} profil(ov) úspešne.</system:String>
+    <system:String x:Key="plugin_quickssh_import_success">Importovaných {0} profilov; preskočených {1} existujúcich profilov.</system:String>
     <system:String x:Key="plugin_quickssh_import_empty">V zvolenom súbore sa nenašli žiadne profily.</system:String>
 
     <!-- DIRECT CONNECT -->
@@ -65,16 +67,16 @@
     <system:String x:Key="plugin_quickssh_subtitle_commanddirectconnect_usage">Použitie: ssh root@host  |  ssh -p 22 root@host  |  ssh -i "key" root@host</system:String>
 
     <!-- SHELL -->
-    <system:String x:Key="plugin_quickssh_title_commandshell">Správa shellov</system:String>
-    <system:String x:Key="plugin_quickssh_title_commandshell_add">Pridať shell profil</system:String>
-    <system:String x:Key="plugin_quickssh_subtitle_commandshell_add_usage">Použitie: shell add &lt;exe&gt; alebo shell add &lt;názov&gt; &lt;exe + argumenty&gt;</system:String>
-    <system:String x:Key="plugin_quickssh_title_commandshell_remove">Odstrániť shell profil</system:String>
-    <system:String x:Key="plugin_quickssh_subtitle_commandshell_remove">Použitie: shell remove [filter]</system:String>
-    <system:String x:Key="plugin_quickssh_subtitle_commandshell_help">Použitie: shell add ; remove</system:String>
+    <system:String x:Key="plugin_quickssh_title_commandshell">Shell</system:String>
+    <system:String x:Key="plugin_quickssh_title_commandshell_add">Pridať shell</system:String>
+    <system:String x:Key="plugin_quickssh_subtitle_commandshell_add_usage">Uložiť nový shell na spúšťanie príkazov.</system:String>
+    <system:String x:Key="plugin_quickssh_title_commandshell_remove">Odstrániť shell</system:String>
+    <system:String x:Key="plugin_quickssh_subtitle_commandshell_remove">Vybrať uložený shell a odstrániť ho.</system:String>
+    <system:String x:Key="plugin_quickssh_subtitle_commandshell_help">Vybrať alebo spravovať shell.</system:String>
     <system:String x:Key="plugin_quickssh_shell_selected">(vybraný)</system:String>
 
     <!-- CONFIG -->
-    <system:String x:Key="plugin_quickssh_title_commandconfig">Importovať SSH config</system:String>
+    <system:String x:Key="plugin_quickssh_title_commandconfig">Importovať SSH konfiguráciu</system:String>
     <system:String x:Key="plugin_quickssh_subtitle_commandconfig">Importovať hosty zo súboru ~/.ssh/config.</system:String>
     <system:String x:Key="plugin_quickssh_subtitle_commandconfig_usage">Použitie: config  (importuje z ~/.ssh/config)</system:String>
     <system:String x:Key="plugin_quickssh_config_imported">Importovaných {0} host(ov) zo SSH config.</system:String>
@@ -86,26 +88,82 @@
     <system:String x:Key="plugin_quickssh_subtitle_commandhelp_usage">Použitie: help</system:String>
 
     <!-- Label appended to legacy .json import files -->
-    <system:String x:Key="plugin_quickssh_import_legacy_label">(legacy)</system:String>
+    <system:String x:Key="plugin_quickssh_import_legacy_label">(starší formát)</system:String>
 
     <!-- LEGACY ADD REDIRECT -->
-    <system:String x:Key="plugin_quickssh_title_commandadd_legacy">Command renamed: use "profiles add"</system:String>
-    <system:String x:Key="plugin_quickssh_subtitle_commandadd_legacy">The "add" command is now "profiles add &lt;name&gt; &lt;ssh-command&gt;". Press Enter or Tab to navigate.</system:String>
+    <system:String x:Key="plugin_quickssh_title_commandadd_legacy">Príkaz bol premenovaný: použite „profiles add“</system:String>
+    <system:String x:Key="plugin_quickssh_subtitle_commandadd_legacy">Príkaz „add“ sa teraz volá „profiles add &lt;názov&gt; &lt;ssh-príkaz&gt;“. Stlačením Enter pokračujte.</system:String>
 
     <!-- BACK NAVIGATION -->
     <system:String x:Key="plugin_quickssh_back_nav_title">← Späť na {0}</system:String>
 
+
+    <!-- ACTIONS -->
+    <system:String x:Key="plugin_quickssh_title_commandactions">Akcie</system:String>
+    <system:String x:Key="plugin_quickssh_subtitle_commandactions">Spúšťajte uložené vzdialené príkazy cez SSH profily.</system:String>
+    <system:String x:Key="plugin_quickssh_title_commandactions_run">Spustiť akciu</system:String>
+    <system:String x:Key="plugin_quickssh_subtitle_commandactions_run">Vyberte SSH profil a potom akciu.</system:String>
+    <system:String x:Key="plugin_quickssh_title_commandactions_add">Pridať akciu</system:String>
+    <system:String x:Key="plugin_quickssh_subtitle_commandactions_add">Uložiť nový vzdialený príkaz.</system:String>
+    <system:String x:Key="plugin_quickssh_title_commandactions_remove">Odstrániť akciu</system:String>
+    <system:String x:Key="plugin_quickssh_subtitle_commandactions_remove">Vybrať akciu a potvrdiť jej odstránenie.</system:String>
+    <system:String x:Key="plugin_quickssh_title_commandactions_rename">Premenovať akciu</system:String>
+    <system:String x:Key="plugin_quickssh_subtitle_commandactions_rename">Zmeniť názov uloženej akcie.</system:String>
+    <system:String x:Key="plugin_quickssh_noactions">Nie sú uložené žiadne SSH akcie.</system:String>
+    <system:String x:Key="plugin_quickssh_actions_add_first">Pridať prvú akciu</system:String>
+    <system:String x:Key="plugin_quickssh_actions_empty_title">Zatiaľ nemáte žiadne SSH akcie</system:String>
+    <system:String x:Key="plugin_quickssh_actions_empty_subtitle">Uložte vzdialený príkaz a spúšťajte ho cez SSH profil.</system:String>
+    <system:String x:Key="plugin_quickssh_actions_saved_title">Uložená akcia: {0}</system:String>
+    <system:String x:Key="plugin_quickssh_actions_save_title">Uložiť akciu „{0}“</system:String>
+    <system:String x:Key="plugin_quickssh_actions_rejected">Akcia bola odmietnutá: použite jeden riadok a nikdy nevkladajte privátny kľúč.</system:String>
+    <system:String x:Key="plugin_quickssh_actions_notfound">Akcia sa nenašla.</system:String>
+    <system:String x:Key="plugin_quickssh_actions_profile_notfound">SSH profil sa nenašiel alebo ide o SCP profil.</system:String>
+    <system:String x:Key="plugin_quickssh_actions_no_profiles">Pred spustením akcie si uložte SSH profil.</system:String>
+    <system:String x:Key="plugin_quickssh_actions_add_profile">Pridať SSH profil</system:String>
+    <system:String x:Key="plugin_quickssh_actions_profile_label">Profil: {0}</system:String>
+    <system:String x:Key="plugin_quickssh_actions_action_label">Akcia: {0}</system:String>
+    <system:String x:Key="plugin_quickssh_actions_execute_title">Spustiť akciu</system:String>
+    <system:String x:Key="plugin_quickssh_actions_select_profile_subtitle">Vyberte SSH profil, cez ktorý sa akcia spustí.</system:String>
+    <system:String x:Key="plugin_quickssh_actions_select_action_subtitle">Vyberte vzdialený príkaz, ktorý sa má spustiť.</system:String>
+    <system:String x:Key="plugin_quickssh_actions_confirm_subtitle">Skontrolujte profil a vzdialený príkaz.</system:String>
+    <system:String x:Key="plugin_quickssh_actions_command_label">SSH príkaz</system:String>
+    <system:String x:Key="plugin_quickssh_actions_execute_subtitle">Vykonať „{0}“ cez profil „{1}“.</system:String>
+    <system:String x:Key="plugin_quickssh_actions_cannot_run">Akciu nemožno spustiť</system:String>
+    <system:String x:Key="plugin_quickssh_actions_unsupported">Profil alebo akcia je neúplná alebo nepodporovaná.</system:String>
+    <system:String x:Key="plugin_quickssh_actions_remove_confirm">Odstrániť akciu „{0}“</system:String>
+    <system:String x:Key="plugin_quickssh_name_invalid">Použite 1 až 64 písmen alebo číslic a iba bodku, pomlčku alebo podčiarkovník.</system:String>
+    <system:String x:Key="plugin_quickssh_name_reserved">Tento názov je vyhradený pre QuickSSH.</system:String>
+    <system:String x:Key="plugin_quickssh_name_exists">Položka s týmto názvom už existuje.</system:String>
+    <system:String x:Key="plugin_quickssh_profiles_add_template_title">Doplniť vzor profilu</system:String>
+    <system:String x:Key="plugin_quickssh_profiles_add_template_subtitle">server ssh user@host</system:String>
+    <system:String x:Key="plugin_quickssh_actions_add_template_title">Doplniť vzor akcie</system:String>
+    <system:String x:Key="plugin_quickssh_actions_add_template_subtitle">check hostname</system:String>
+    <system:String x:Key="plugin_quickssh_keys_add_template_title">Doplniť vzor SSH kľúča</system:String>
+    <system:String x:Key="plugin_quickssh_keys_add_template_subtitle">server-key ~/.ssh/private_key</system:String>
+    <system:String x:Key="plugin_quickssh_profiles_save_title">Uložiť profil „{0}“</system:String>
+
+    <system:String x:Key="plugin_quickssh_title_commandactions_manage">Spravovať akcie</system:String>
+    <system:String x:Key="plugin_quickssh_subtitle_commandactions_manage">Pridávať a spravovať uložené akcie.</system:String>
+    <system:String x:Key="plugin_quickssh_actions_select_profile_for_action">Vyberte SSH profil pre akciu „{0}“.</system:String>
+    <system:String x:Key="plugin_quickssh_actions_confirm_title">Potvrdiť spustenie</system:String>
+    <system:String x:Key="plugin_quickssh_actions_execute_named_title">Spustiť „{0}“</system:String>
+    <system:String x:Key="plugin_quickssh_actions_execute_named_subtitle">Vykonať cez profil „{0}“.</system:String>
+
     <!-- KEYS (SSH key management) -->
-    <system:String x:Key="plugin_quickssh_title_commandkeys">Správa SSH kľúčov</system:String>
-    <system:String x:Key="plugin_quickssh_subtitle_commandkeys">Použitie: keys install | add | generate | remove | rename | copy-path | copy-pub | scan</system:String>
-    <system:String x:Key="plugin_quickssh_title_commandkeys_add">Registrovať SSH kľúč</system:String>
-    <system:String x:Key="plugin_quickssh_subtitle_commandkeys_add">Použitie: keys add &lt;alias&gt; &lt;cesta-ku-kľúču&gt;</system:String>
-    <system:String x:Key="plugin_quickssh_title_commandkeys_generate">Generovať SSH kľúčový pár</system:String>
-    <system:String x:Key="plugin_quickssh_subtitle_commandkeys_generate">Použitie: keys generate &lt;alias&gt; [vlastná-cesta]</system:String>
+    <system:String x:Key="plugin_quickssh_title_commandkeys">SSH kľúče</system:String>
+    <system:String x:Key="plugin_quickssh_subtitle_commandkeys">Inštalovať verejné kľúče alebo spravovať uložené SSH kľúče.</system:String>
+    <system:String x:Key="plugin_quickssh_title_commandkeys_manage">Spravovať SSH kľúče</system:String>
+    <system:String x:Key="plugin_quickssh_subtitle_commandkeys_manage">Pridávať a spravovať uložené SSH kľúče.</system:String>
+    <system:String x:Key="plugin_quickssh_keys_public_path_label">Verejný kľúč •</system:String>
+    <system:String x:Key="plugin_quickssh_keys_private_path_label">Súkromný kľúč •</system:String>
+    <system:String x:Key="plugin_quickssh_title_commandkeys_add">Pridať existujúci SSH kľúč</system:String>
+    <system:String x:Key="plugin_quickssh_subtitle_commandkeys_add">Uložiť existujúci súkromný kľúč pod vlastným názvom.</system:String>
+    <system:String x:Key="plugin_quickssh_title_commandkeys_generate">Vygenerovať pár SSH kľúčov</system:String>
+    <system:String x:Key="plugin_quickssh_subtitle_commandkeys_generate">Vytvoriť nový súkromný a verejný kľúč.</system:String>
     <system:String x:Key="plugin_quickssh_keys_generate_confirm">Generovať: {0}</system:String>
     <system:String x:Key="plugin_quickssh_keys_generate_subtitle">{0} → {1} (bez hesla)</system:String>
-    <system:String x:Key="plugin_quickssh_keys_generate_invalid_alias">Neplatný alias — obsahuje len neplatné znaky.</system:String>
-    <system:String x:Key="plugin_quickssh_keys_generate_duplicate">Alias už existuje: {0}</system:String>
+    <system:String x:Key="plugin_quickssh_keys_generate_invalid_alias">Neplatný názov kľúča — obsahuje len neplatné znaky.</system:String>
+    <system:String x:Key="plugin_quickssh_keys_generate_duplicate">Kľúč s týmto názvom už existuje: {0}</system:String>
     <system:String x:Key="plugin_quickssh_keys_generate_file_exists">Súbor kľúča už existuje: {0}</system:String>
     <system:String x:Key="plugin_quickssh_keys_generate_invalid_path">Neplatná cesta: {0}</system:String>
     <system:String x:Key="plugin_quickssh_keys_generate_path_is_directory">Cesta je adresár, nie súbor kľúča: {0}</system:String>
@@ -117,24 +175,24 @@ Súkromný: {1}
 Verejný: {2}</system:String>
     <system:String x:Key="plugin_quickssh_keys_generate_failed">Generovanie kľúča bolo zrušené alebo zlyhalo.</system:String>
     <system:String x:Key="plugin_quickssh_keys_generate_failed_detail">Generovanie kľúča zlyhalo: {0}</system:String>
-    <system:String x:Key="plugin_quickssh_title_commandkeys_remove">Odstrániť SSH kľúč</system:String>
-    <system:String x:Key="plugin_quickssh_subtitle_commandkeys_remove">Použitie: keys remove [filter]</system:String>
-    <system:String x:Key="plugin_quickssh_keys_remove_success">SSH alias kľúča odstránený: {0}
-Iba záznam v registri bol odstránený.
-Súbory na disku ponechané: {1}</system:String>
-    <system:String x:Key="plugin_quickssh_title_commandkeys_rename">Premenovať alias kľúča</system:String>
-    <system:String x:Key="plugin_quickssh_subtitle_commandkeys_rename">Použitie: keys rename &lt;starý-alias&gt; &lt;nový-alias&gt;</system:String>
-    <system:String x:Key="plugin_quickssh_keys_rename_notfound">Alias kľúča sa nenašiel.</system:String>
-    <system:String x:Key="plugin_quickssh_keys_rename_duplicate">Alias s týmto názvom už existuje.</system:String>
+    <system:String x:Key="plugin_quickssh_title_commandkeys_remove">Odstrániť uložený kľúč</system:String>
+    <system:String x:Key="plugin_quickssh_subtitle_commandkeys_remove">Odstrániť záznam zo zoznamu; súbor kľúča zostane zachovaný.</system:String>
+    <system:String x:Key="plugin_quickssh_keys_remove_success">Uložený SSH kľúč odstránený: {0}
+Odstránený bol iba záznam zo zoznamu.
+Súbory zostali zachované: {1}</system:String>
+    <system:String x:Key="plugin_quickssh_title_commandkeys_rename">Premenovať kľúč</system:String>
+    <system:String x:Key="plugin_quickssh_subtitle_commandkeys_rename">Zmeniť názov uloženého kľúča.</system:String>
+    <system:String x:Key="plugin_quickssh_keys_rename_notfound">Uložený kľúč sa nenašiel.</system:String>
+    <system:String x:Key="plugin_quickssh_keys_rename_duplicate">Kľúč s týmto názvom už existuje.</system:String>
     <system:String x:Key="plugin_quickssh_title_commandkeys_copypath">Kopírovať cestu ku kľúču</system:String>
-    <system:String x:Key="plugin_quickssh_subtitle_commandkeys_copypath">Použitie: keys copy-path [filter]</system:String>
+    <system:String x:Key="plugin_quickssh_subtitle_commandkeys_copypath">Skopírovať úplnú cestu k súkromnému kľúču.</system:String>
     <system:String x:Key="plugin_quickssh_keys_copypath_label">Kopírovať cestu:</system:String>
     <system:String x:Key="plugin_quickssh_title_commandkeys_copypub">Kopírovať verejný kľúč</system:String>
-    <system:String x:Key="plugin_quickssh_subtitle_commandkeys_copypub">Použitie: keys copy-pub [filter]</system:String>
+    <system:String x:Key="plugin_quickssh_subtitle_commandkeys_copypub">Skopírovať obsah verejného kľúča.</system:String>
     <system:String x:Key="plugin_quickssh_keys_copypub_label">Kopírovať .pub:</system:String>
     <system:String x:Key="plugin_quickssh_keys_copypub_notfound">Súbor verejného kľúča (.pub) sa nenašiel:</system:String>
     <system:String x:Key="plugin_quickssh_title_commandkeys_scan">Vyhľadať kľúče</system:String>
-    <system:String x:Key="plugin_quickssh_subtitle_commandkeys_scan">Prehľadať ~/.ssh/ na súbory kľúčov</system:String>
+    <system:String x:Key="plugin_quickssh_subtitle_commandkeys_scan">Nájsť existujúce SSH kľúče v priečinku ~/.ssh.</system:String>
     <system:String x:Key="plugin_quickssh_keys_scan_nodir">Adresár ~/.ssh/ sa nenašiel.</system:String>
     <system:String x:Key="plugin_quickssh_keys_scan_empty">Žiadne súbory kľúčov v ~/.ssh/</system:String>
     <system:String x:Key="plugin_quickssh_keys_scan_registered">(už registrovaný)</system:String>
@@ -143,4 +201,114 @@ Súbory na disku ponechané: {1}</system:String>
     <system:String x:Key="plugin_quickssh_keys_file_missing">(súbor sa nenašiel)</system:String>
     <system:String x:Key="plugin_quickssh_keys_identity">Identifikačný súbor:</system:String>
 
+    <!-- KEYS INSTALL -->
+    <system:String x:Key="plugin_quickssh_title_commandkeys_install">Nainštalovať verejný kľúč</system:String>
+    <system:String x:Key="plugin_quickssh_subtitle_commandkeys_install">Pridať vybraný kľúč na vzdialený Linux server.</system:String>
+    <system:String x:Key="plugin_quickssh_keys_install_type_userhost">Napíš: {0} keys install {1} user@host</system:String>
+    <system:String x:Key="plugin_quickssh_keys_install_select_profile">Vyberte uložený SSH profil alebo ručne napíšte user@host.</system:String>
+    <system:String x:Key="plugin_quickssh_keys_install_manual_destination">Zadať cieľ ručne</system:String>
+    <system:String x:Key="plugin_quickssh_keys_install_profile_unsupported">Tento profil sa nedá použiť na inštaláciu kľúča.</system:String>
+    <system:String x:Key="plugin_quickssh_keys_install_summary">Nainštalovať "{0}" → {1}</system:String>
+    <system:String x:Key="plugin_quickssh_keys_install_run">Spustiť vzdialený nastavovací príkaz</system:String>
+    <system:String x:Key="plugin_quickssh_keys_install_copy_cmd">Kopírovať vzdialený nastavovací príkaz</system:String>
+    <system:String x:Key="plugin_quickssh_keys_install_copy_pub">Kopírovať verejný kľúč</system:String>
+    <system:String x:Key="plugin_quickssh_keys_install_copy_cmd_subtitle">Kopírovať celý SSH príkaz do schránky</system:String>
+    <system:String x:Key="plugin_quickssh_keys_install_copy_pub_subtitle">Kopírovať verejný kľúč, ktorý sa pridá na vzdialený server</system:String>
+    <system:String x:Key="plugin_quickssh_keys_install_alias_notfound">Uložený kľúč sa nenašiel: {0}</system:String>
+    <system:String x:Key="plugin_quickssh_keys_install_pub_notfound">Súbor verejného kľúča sa nenašiel: {0}</system:String>
+    <system:String x:Key="plugin_quickssh_keys_install_pub_invalid">Obsah súboru verejného kľúča je neplatný alebo nebezpečný.</system:String>
+    <system:String x:Key="plugin_quickssh_keys_install_invalid_destination">Neplatný cieľ — očakáva sa formát user@host.</system:String>
+    <system:String x:Key="plugin_quickssh_keys_install_copy_cmd_success">Vzdialený nastavovací príkaz skopírovaný do schránky.</system:String>
+
+    <system:String x:Key="plugin_quickssh_title_commandtools">Nástroje</system:String>
+    <system:String x:Key="plugin_quickssh_subtitle_root_profiles">Pripojiť sa k uloženému serveru.</system:String>
+    <system:String x:Key="plugin_quickssh_subtitle_root_actions">Spustiť uložený vzdialený príkaz.</system:String>
+    <system:String x:Key="plugin_quickssh_subtitle_root_tools">SSH kľúče, shell a import konfigurácie.</system:String>
+    <system:String x:Key="plugin_quickssh_subtitle_root_help">Dokumentácia a prehľad príkazov.</system:String>
+    <system:String x:Key="plugin_quickssh_back_root_label">hlavné menu</system:String>
+    <system:String x:Key="plugin_quickssh_subtitle_tools_keys">Použiť alebo spravovať SSH kľúče.</system:String>
+    <system:String x:Key="plugin_quickssh_subtitle_tools_shell">Vybrať alebo spravovať shell na spúšťanie príkazov.</system:String>
+    <system:String x:Key="plugin_quickssh_subtitle_tools_config">Importovať profily zo súboru ~/.ssh/config.</system:String>
+
+    <!-- Consolidated navigation and action UX -->
+    <system:String x:Key="plugin_quickssh_title_commandshell_manage">Spravovať shelly</system:String>
+    <system:String x:Key="plugin_quickssh_actions_execute_summary">Cez profil „{0}“ • {1}</system:String>
+    <system:String x:Key="plugin_quickssh_actions_copy_command_title">Kopírovať SSH príkaz</system:String>
+    <system:String x:Key="plugin_quickssh_back_profiles_label">profily</system:String>
+    <system:String x:Key="plugin_quickssh_back_profiles_manage_label">správu profilov</system:String>
+    <system:String x:Key="plugin_quickssh_back_actions_label">akcie</system:String>
+    <system:String x:Key="plugin_quickssh_back_actions_manage_label">správu akcií</system:String>
+    <system:String x:Key="plugin_quickssh_back_actions_profile_selection_label">výber profilu</system:String>
+    <system:String x:Key="plugin_quickssh_back_actions_action_selection_label">výber akcie</system:String>
+    <system:String x:Key="plugin_quickssh_back_keys_label">SSH kľúče</system:String>
+    <system:String x:Key="plugin_quickssh_back_keys_manage_label">správu SSH kľúčov</system:String>
+    <system:String x:Key="plugin_quickssh_back_shell_label">shell</system:String>
+    <system:String x:Key="plugin_quickssh_back_shell_manage_label">správu shellov</system:String>
+    <system:String x:Key="plugin_quickssh_back_tools_label">nástroje</system:String>
+    <system:String x:Key="plugin_quickssh_back_profiles_selection_label">výber profilu</system:String>
+    <system:String x:Key="plugin_quickssh_profiles_remove_confirm">Odstrániť profil „{0}“</system:String>
+
+    <system:String x:Key="plugin_quickssh_wizard_profiles_add_name_title">Doplniť príklad názvu: „{0}“</system:String>
+    <system:String x:Key="plugin_quickssh_wizard_profiles_add_name_subtitle">Krok 1 zo 4 • Alebo hore napíšte vlastný názov profilu.</system:String>
+    <system:String x:Key="plugin_quickssh_wizard_profiles_add_command_title">Krok 2 z 2: Zadajte SSH príkaz</system:String>
+    <system:String x:Key="plugin_quickssh_wizard_profiles_add_command_subtitle">Za názov napíšte napríklad „ssh user@host“.</system:String>
+    <system:String x:Key="plugin_quickssh_wizard_actions_add_name_title">Doplniť príklad názvu: „{0}“</system:String>
+    <system:String x:Key="plugin_quickssh_wizard_actions_add_name_subtitle">Krok 1 z 2 • Alebo hore napíšte vlastný názov akcie.</system:String>
+    <system:String x:Key="plugin_quickssh_wizard_actions_add_command_title">Doplniť príklad príkazu: „hostname“</system:String>
+    <system:String x:Key="plugin_quickssh_wizard_actions_add_command_subtitle">Krok 2 z 2 • Alebo hore napíšte vlastný vzdialený príkaz.</system:String>
+    <system:String x:Key="plugin_quickssh_wizard_keys_add_name_title">Doplniť príklad názvu: „{0}“</system:String>
+    <system:String x:Key="plugin_quickssh_wizard_keys_add_name_subtitle">Krok 1 z 2 • Alebo hore napíšte vlastný názov kľúča.</system:String>
+    <system:String x:Key="plugin_quickssh_wizard_keys_add_path_title">Doplniť príklad cesty: „~/.ssh/private_key“</system:String>
+    <system:String x:Key="plugin_quickssh_wizard_keys_add_path_subtitle">Krok 2 z 2 • Alebo hore napíšte cestu k svojmu súkromnému kľúču.</system:String>
+    <system:String x:Key="plugin_quickssh_wizard_shell_add_name_title">Doplniť príklad názvu: „{0}“</system:String>
+    <system:String x:Key="plugin_quickssh_wizard_shell_add_name_subtitle">Krok 1 z 2 • Alebo hore napíšte vlastný názov shellu.</system:String>
+    <system:String x:Key="plugin_quickssh_wizard_shell_add_command_title">Doplniť príklad programu: „pwsh.exe -NoLogo“</system:String>
+    <system:String x:Key="plugin_quickssh_wizard_shell_add_command_subtitle">Krok 2 z 2 • Alebo hore napíšte program a voliteľné argumenty.</system:String>
+    <system:String x:Key="plugin_quickssh_wizard_shell_use_name_subtitle">Použiť „{0}“ aj ako názov programu.</system:String>
+    <system:String x:Key="plugin_quickssh_wizard_profiles_rename_title">Doplniť návrh nového názvu: „{0}“</system:String>
+    <system:String x:Key="plugin_quickssh_wizard_profiles_rename_subtitle">Aktuálny názov: „{0}“. Alebo hore napíšte vlastný nový názov.</system:String>
+    <system:String x:Key="plugin_quickssh_wizard_actions_rename_title">Doplniť návrh nového názvu: „{0}“</system:String>
+    <system:String x:Key="plugin_quickssh_wizard_actions_rename_subtitle">Aktuálny názov: „{0}“. Alebo hore napíšte vlastný nový názov.</system:String>
+    <system:String x:Key="plugin_quickssh_wizard_keys_rename_title">Doplniť návrh nového názvu: „{0}“</system:String>
+    <system:String x:Key="plugin_quickssh_wizard_keys_rename_subtitle">Aktuálny názov: „{0}“. Alebo hore napíšte vlastný nový názov.</system:String>
+    <system:String x:Key="plugin_quickssh_name_unchanged">Nový názov je rovnaký ako pôvodný.</system:String>
+    <system:String x:Key="plugin_quickssh_command_invalid">Zadajte platný SSH príkaz.</system:String>
+    <system:String x:Key="plugin_quickssh_profiles_rename_confirm_title">Premenovať „{0}“ na „{1}“</system:String>
+    <system:String x:Key="plugin_quickssh_profiles_rename_confirm_subtitle">SSH príkaz a nastavenia profilu zostanú nezmenené.</system:String>
+    <system:String x:Key="plugin_quickssh_actions_rename_confirm_title">Premenovať „{0}“ na „{1}“</system:String>
+    <system:String x:Key="plugin_quickssh_actions_rename_confirm_subtitle">Vzdialený príkaz zostane nezmenený.</system:String>
+    <system:String x:Key="plugin_quickssh_keys_rename_confirm_title">Premenovať „{0}“ na „{1}“</system:String>
+    <system:String x:Key="plugin_quickssh_keys_rename_confirm_subtitle">Súbor kľúča a jeho cesta zostanú nezmenené.</system:String>
+    <system:String x:Key="plugin_quickssh_keys_path_missing_title">Cesta ku kľúču neexistuje</system:String>
+    <system:String x:Key="plugin_quickssh_keys_save_title">Uložiť kľúč „{0}“</system:String>
+    <system:String x:Key="plugin_quickssh_shell_save_title">Uložiť shell „{0}“</system:String>
+    <system:String x:Key="plugin_quickssh_wizard_profiles_add_target_title">Doplniť príklad servera: „user@host“</system:String>
+    <system:String x:Key="plugin_quickssh_wizard_profiles_add_target_subtitle">Krok 2 zo 4 • Alebo hore napíšte vlastný cieľ, napríklad vaio@10.0.0.10.</system:String>
+    <system:String x:Key="plugin_quickssh_profiles_port_default_title">Použiť predvolený port 22</system:String>
+    <system:String x:Key="plugin_quickssh_profiles_port_default_subtitle">Krok 3 zo 4 • Bežný SSH port; do profilu sa osobitne neuloží.</system:String>
+    <system:String x:Key="plugin_quickssh_profiles_port_custom_title">Zadať iný port</system:String>
+    <system:String x:Key="plugin_quickssh_profiles_port_custom_subtitle">Krok 3 zo 4 • Napíšte číslo od 1 do 65535.</system:String>
+    <system:String x:Key="plugin_quickssh_profiles_port_invalid_title">Neplatný SSH port</system:String>
+    <system:String x:Key="plugin_quickssh_profiles_port_invalid_subtitle">Zadajte celé číslo od 1 do 65535.</system:String>
+    <system:String x:Key="plugin_quickssh_wizard_profiles_add_auth_title">Krok 4 zo 4: Vyberte prihlásenie</system:String>
+    <system:String x:Key="plugin_quickssh_wizard_profiles_add_auth_subtitle">Vyberte uložený súkromný kľúč alebo použite SSH agenta či konfiguráciu.</system:String>
+    <system:String x:Key="plugin_quickssh_profiles_auth_default_title">Použiť SSH agenta alebo konfiguráciu</system:String>
+    <system:String x:Key="plugin_quickssh_profiles_auth_default_subtitle">Uložiť profil bez pevne zvoleného súkromného kľúča.</system:String>
+    <system:String x:Key="plugin_quickssh_profiles_auth_advanced_title">Zadať celý SSH príkaz</system:String>
+    <system:String x:Key="plugin_quickssh_profiles_auth_advanced_subtitle">Použiť pre tunely, SCP, ProxyJump alebo ďalšie pokročilé možnosti.</system:String>
+    <system:String x:Key="plugin_quickssh_profiles_no_private_keys_title">Nie je uložený použiteľný súkromný kľúč</system:String>
+    <system:String x:Key="plugin_quickssh_profiles_no_private_keys_subtitle">Pridajte alebo vygenerujte súkromný kľúč, prípadne pokračujte bez neho.</system:String>
+    <system:String x:Key="plugin_quickssh_profiles_key_missing_subtitle">Súbor súkromného kľúča sa nenašiel: {0}</system:String>
+    <system:String x:Key="plugin_quickssh_profiles_key_public_subtitle">Verejný kľúč nemožno použiť na prihlásenie. Vyberte jeho súkromný kľúč: {0}</system:String>
+    <system:String x:Key="plugin_quickssh_profiles_key_invalid_subtitle">Súbor nie je rozpoznaný ako súkromný SSH kľúč: {0}</system:String>
+    <system:String x:Key="plugin_quickssh_profiles_key_notfound">Uložený súkromný kľúč sa nenašiel.</system:String>
+    <system:String x:Key="plugin_quickssh_profiles_destination_invalid">Zadajte platný server ako používateľ@server alebo server.</system:String>
+    <system:String x:Key="plugin_quickssh_wizard_profiles_rename_prefilled_subtitle">Upravte posledné „{0}“ alebo použite navrhnutý názov.</system:String>
+    <system:String x:Key="plugin_quickssh_wizard_actions_rename_prefilled_subtitle">Upravte posledné „{0}“ alebo použite navrhnutý názov.</system:String>
+    <system:String x:Key="plugin_quickssh_wizard_keys_rename_prefilled_subtitle">Upravte posledné „{0}“ alebo použite navrhnutý názov.</system:String>
+
+    <system:String x:Key="plugin_quickssh_shell_selected_missing">Vybraný shell „{0}“ už neexistuje. Príkaz sa nespustil.</system:String>
+    <system:String x:Key="plugin_quickssh_shell_definition_invalid">Shell „{0}“ má neplatne zadaný program. Príkaz sa nespustil.</system:String>
+    <system:String x:Key="plugin_quickssh_shell_executable_missing">Program pre shell „{0}“ sa nenašiel. Príkaz sa nespustil.</system:String>
+    <system:String x:Key="plugin_quickssh_shell_start_failed">Shell „{0}“ sa nepodarilo spustiť. Príkaz sa nespustil. Chyba: {1}</system:String>
 </ResourceDictionary>
