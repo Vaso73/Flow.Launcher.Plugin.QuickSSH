@@ -92,9 +92,9 @@ namespace Flow.Launcher.Plugin.QuickSSH.Tests
                 source, "HandleKeysInstall", "HandleKeysGenerate"));
             Assert.Contains("IcoPath = AppIconGreenPath", ReadMethod(
                 source, "HandleKeysGenerate", "HandleKeysRemove"));
-            Assert.Contains("IcoPath = AppIconRedPath", ReadMethod(
+            Assert.Contains("IcoPath = GetKeyOperationIconPath(entryValue, \"remove\")", ReadMethod(
                 source, "HandleKeysRemove", "HandleKeysRename"));
-            Assert.Contains("IcoPath = GetSemanticIconPath(\"rename\")", ReadMethod(
+            Assert.Contains("IcoPath = GetKeyOperationIconPath(entry.Value, \"rename\")", ReadMethod(
                 source, "HandleKeysRename", "HandleKeysCopyPath"));
             Assert.Contains("IcoPath = AppIconGreenPath", ReadMethod(
                 source, "HandleKeysScan", "HandleConfig"));
@@ -105,14 +105,57 @@ namespace Flow.Launcher.Plugin.QuickSSH.Tests
         }
 
         [Fact]
-        public void SavedKeysAreGreenAndHelpIsNeutralBlue()
+        public void SavedKeysUseContentTypeIconsAndHelpIsNeutralBlue()
         {
             var root = Path.GetFullPath(Path.Combine(
                 AppDomain.CurrentDomain.BaseDirectory, "..", "..", "..", ".."));
             var source = File.ReadAllText(Path.Combine(root, "Main.cs"));
 
+            Assert.Contains(
+                "private const string PrivateKeyIconPath = \"Images\\\\key-private.png\";",
+                source);
+            Assert.Contains(
+                "private const string PublicKeyIconPath = \"Images\\\\key-public.png\";",
+                source);
+            Assert.True(File.Exists(Path.Combine(root, "Images", "key-private.png")));
+            Assert.True(File.Exists(Path.Combine(root, "Images", "key-public.png")));
+
+            Assert.Contains(
+                "private const string PrivateKeyRenameIconPath = \"Images\\\\key-private-rename.png\";",
+                source);
+            Assert.Contains(
+                "private const string PublicKeyRenameIconPath = \"Images\\\\key-public-rename.png\";",
+                source);
+            Assert.Contains(
+                "private const string PrivateKeyRemoveIconPath = \"Images\\\\key-private-remove.png\";",
+                source);
+            Assert.Contains(
+                "private const string PublicKeyRemoveIconPath = \"Images\\\\key-public-remove.png\";",
+                source);
+            Assert.True(File.Exists(Path.Combine(root, "Images", "key-private-rename.png")));
+            Assert.True(File.Exists(Path.Combine(root, "Images", "key-public-rename.png")));
+            Assert.True(File.Exists(Path.Combine(root, "Images", "key-private-remove.png")));
+            Assert.True(File.Exists(Path.Combine(root, "Images", "key-public-remove.png")));
+
+            Assert.Contains(
+                "ProfileWizard.SshKeyFileKind.Private => PrivateKeyRenameIconPath",
+                source);
+            Assert.Contains(
+                "ProfileWizard.SshKeyFileKind.Public => PublicKeyRenameIconPath",
+                source);
+            Assert.Contains(
+                "ProfileWizard.SshKeyFileKind.Private => PrivateKeyRemoveIconPath",
+                source);
+            Assert.Contains(
+                "ProfileWizard.SshKeyFileKind.Public => PublicKeyRemoveIconPath",
+                source);
+
             var keys = ReadMethod(source, "HandleKeysList", "HandleKeysManage");
-            Assert.Contains("IcoPath = fileExists ? AppIconGreenPath : AppIconRedPath", keys);
+            Assert.Contains("ProfileWizard.GetKeyFileKind(keyEntry)", keys);
+            Assert.Contains("ProfileWizard.SshKeyFileKind.Private => PrivateKeyIconPath", keys);
+            Assert.Contains("ProfileWizard.SshKeyFileKind.Public => PublicKeyIconPath", keys);
+            Assert.Contains("_ => AppIconRedPath", keys);
+            Assert.DoesNotContain("fileExists ? AppIconGreenPath : AppIconRedPath", keys);
 
             var docsStart = source.IndexOf(
                 "private List<Result> HandleDocs(", StringComparison.Ordinal);
@@ -121,6 +164,66 @@ namespace Flow.Launcher.Plugin.QuickSSH.Tests
             var docs = source.Substring(docsStart, docsEnd - docsStart);
             Assert.Contains("IcoPath = AppIconPath", docs);
             Assert.DoesNotContain("IcoPath = AppIconGreenPath", docs);
+        }
+
+        [Fact]
+        public void KeyOperationRowsKeepExplicitTypeLabels()
+        {
+            var root = Path.GetFullPath(Path.Combine(
+                AppDomain.CurrentDomain.BaseDirectory, "..", "..", "..", ".."));
+            var source = File.ReadAllText(Path.Combine(root, "Main.cs"));
+
+            Assert.Contains("private string BuildKeyTypeSubtitle(SshKeyEntry? entry)", source);
+            Assert.Contains(
+                "GetTranslation(\"plugin_quickssh_keys_private_path_label\")",
+                source);
+            Assert.Contains(
+                "GetTranslation(\"plugin_quickssh_keys_public_path_label\")",
+                source);
+            Assert.Contains(
+                "SubTitle = BuildKeyTypeSubtitle(entryValue)",
+                ReadMethod(source, "HandleKeysRemove", "HandleKeysRename"));
+            Assert.Contains(
+                "SubTitle = BuildKeyTypeSubtitle(entry.Value)",
+                ReadMethod(source, "HandleKeysRename", "HandleKeysCopyPath"));
+            Assert.Contains("_ => \"\"", source);
+            Assert.Contains("keyTypeLabel + \" • \" + displayPath", source);
+        }
+
+        [Fact]
+        public void KeyManageMenuUsesDedicatedActionIcons()
+        {
+            var root = Path.GetFullPath(Path.Combine(
+                AppDomain.CurrentDomain.BaseDirectory, "..", "..", "..", ".."));
+            var source = File.ReadAllText(Path.Combine(root, "Main.cs"));
+            var manage = ReadMethod(source, "HandleKeysManage", "HandleKeysAdd");
+
+            var iconFiles = new[]
+            {
+                "key-manage-add.png",
+                "key-manage-generate.png",
+                "key-manage-scan.png",
+                "key-manage-rename.png",
+                "key-manage-copy-path.png",
+                "key-manage-copy-public.png",
+                "key-manage-remove.png"
+            };
+
+            foreach (var iconFile in iconFiles)
+                Assert.True(File.Exists(Path.Combine(root, "Images", iconFile)));
+
+            Assert.Contains("KeyManageAddIconPath", manage);
+            Assert.Contains("KeyManageGenerateIconPath", manage);
+            Assert.Contains("KeyManageScanIconPath", manage);
+            Assert.Contains("KeyManageRenameIconPath", manage);
+            Assert.Contains("KeyManageCopyPathIconPath", manage);
+            Assert.Contains("KeyManageCopyPublicIconPath", manage);
+            Assert.Contains("KeyManageRemoveIconPath", manage);
+
+            Assert.DoesNotContain("AppIconGreenPath", manage);
+            Assert.DoesNotContain("AppIconOrangePath", manage);
+            Assert.DoesNotContain("AppIconRedPath", manage);
+            Assert.DoesNotContain("AppIconPath", manage);
         }
 
         [Fact]

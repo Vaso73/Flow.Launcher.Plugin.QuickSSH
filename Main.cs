@@ -89,6 +89,19 @@ namespace Flow.Launcher.Plugin.QuickSSH
         private const string AppIconGreenPath = "Images\\app-green.png";
         private const string AppIconOrangePath = "Images\\app-orange.png";
         private const string AppIconRedPath = "Images\\app-red.png";
+        private const string PrivateKeyIconPath = "Images\\key-private.png";
+        private const string PublicKeyIconPath = "Images\\key-public.png";
+        private const string PrivateKeyRenameIconPath = "Images\\key-private-rename.png";
+        private const string PublicKeyRenameIconPath = "Images\\key-public-rename.png";
+        private const string PrivateKeyRemoveIconPath = "Images\\key-private-remove.png";
+        private const string PublicKeyRemoveIconPath = "Images\\key-public-remove.png";
+        private const string KeyManageAddIconPath = "Images\\key-manage-add.png";
+        private const string KeyManageGenerateIconPath = "Images\\key-manage-generate.png";
+        private const string KeyManageScanIconPath = "Images\\key-manage-scan.png";
+        private const string KeyManageRenameIconPath = "Images\\key-manage-rename.png";
+        private const string KeyManageCopyPathIconPath = "Images\\key-manage-copy-path.png";
+        private const string KeyManageCopyPublicIconPath = "Images\\key-manage-copy-public.png";
+        private const string KeyManageRemoveIconPath = "Images\\key-manage-remove.png";
 
         /// <summary>
         /// Returns the icon that represents an operation consistently across every menu,
@@ -125,6 +138,59 @@ namespace Flow.Launcher.Plugin.QuickSSH
                 default:
                     return AppIconPath;
             }
+        }
+
+        /// <summary>
+        /// Preserves the key type while adding the approved operation-specific icon.
+        /// Missing or unrecognized key files remain fail-closed with the red error icon.
+        /// </summary>
+        internal static string GetKeyOperationIconPath(SshKeyEntry? entry, string operation)
+        {
+            var keyKind = ProfileWizard.GetKeyFileKind(entry);
+            switch ((operation ?? string.Empty).Trim().ToLowerInvariant())
+            {
+                case "rename":
+                    return keyKind switch
+                    {
+                        ProfileWizard.SshKeyFileKind.Private => PrivateKeyRenameIconPath,
+                        ProfileWizard.SshKeyFileKind.Public => PublicKeyRenameIconPath,
+                        _ => AppIconRedPath
+                    };
+
+                case "remove":
+                case "delete":
+                    return keyKind switch
+                    {
+                        ProfileWizard.SshKeyFileKind.Private => PrivateKeyRemoveIconPath,
+                        ProfileWizard.SshKeyFileKind.Public => PublicKeyRemoveIconPath,
+                        _ => AppIconRedPath
+                    };
+
+                default:
+                    return AppIconPath;
+            }
+        }
+
+        /// <summary>
+        /// Keeps the key type explicit in operation lists so the UI does not rely on
+        /// color or a small lock symbol alone. Missing or unrecognized files remain
+        /// fail-closed and show only their saved path.
+        /// </summary>
+        private string BuildKeyTypeSubtitle(SshKeyEntry? entry)
+        {
+            var displayPath = entry?.ToDisplayString() ?? "";
+            var keyTypeLabel = ProfileWizard.GetKeyFileKind(entry) switch
+            {
+                ProfileWizard.SshKeyFileKind.Private =>
+                    GetTranslation("plugin_quickssh_keys_private_path_label"),
+                ProfileWizard.SshKeyFileKind.Public =>
+                    GetTranslation("plugin_quickssh_keys_public_path_label"),
+                _ => ""
+            };
+
+            return string.IsNullOrEmpty(keyTypeLabel)
+                ? displayPath
+                : keyTypeLabel + " • " + displayPath;
         }
 
         // ── Submenu ordering scores (Flow Launcher sorts higher score first) ──────
@@ -2535,21 +2601,33 @@ namespace Flow.Launcher.Plugin.QuickSSH
                     var alias = entry.Key;
                     var keyEntry = entry.Value;
                     var displayPath = keyEntry?.ToDisplayString() ?? "";
-                    bool fileExists = !string.IsNullOrEmpty(keyEntry?.Path) && File.Exists(keyEntry.Path);
-                    bool savedPathIsPublic = !string.IsNullOrEmpty(keyEntry?.Path) &&
-                        keyEntry.Path.EndsWith(".pub", StringComparison.OrdinalIgnoreCase);
-                    var keyTypeLabel = savedPathIsPublic
-                        ? GetTranslation("plugin_quickssh_keys_public_path_label")
-                        : GetTranslation("plugin_quickssh_keys_private_path_label");
-                    var subtitle = keyTypeLabel + " " + displayPath +
-                        (fileExists ? "" : " " + GetTranslation("plugin_quickssh_keys_file_missing"));
+                    var keyKind = ProfileWizard.GetKeyFileKind(keyEntry);
+                    var keyTypeLabel = keyKind switch
+                    {
+                        ProfileWizard.SshKeyFileKind.Private =>
+                            GetTranslation("plugin_quickssh_keys_private_path_label"),
+                        ProfileWizard.SshKeyFileKind.Public =>
+                            GetTranslation("plugin_quickssh_keys_public_path_label"),
+                        _ => string.Empty
+                    };
+                    var subtitle = string.IsNullOrEmpty(keyTypeLabel)
+                        ? displayPath
+                        : keyTypeLabel + " " + displayPath;
+                    if (keyKind == ProfileWizard.SshKeyFileKind.Missing)
+                        subtitle += " " + GetTranslation("plugin_quickssh_keys_file_missing");
+                    var keyIconPath = keyKind switch
+                    {
+                        ProfileWizard.SshKeyFileKind.Private => PrivateKeyIconPath,
+                        ProfileWizard.SshKeyFileKind.Public => PublicKeyIconPath,
+                        _ => AppIconRedPath
+                    };
                     var installText = query.ActionKeyword + " keys install " + alias + " ";
 
                     results.Add(new Result
                     {
                         Title = alias,
                         SubTitle = subtitle,
-                        IcoPath = fileExists ? AppIconGreenPath : AppIconRedPath,
+                        IcoPath = keyIconPath,
                         AutoCompleteText = installText,
                         Score = keyScore--,
                         Action = _ =>
@@ -2606,13 +2684,13 @@ namespace Flow.Launcher.Plugin.QuickSSH
 
             var keyActions = new[]
             {
-                ("add",       GetTranslation("plugin_quickssh_title_commandkeys_add"),      GetTranslation("plugin_quickssh_subtitle_commandkeys_add"),      AppIconGreenPath,  ScoreKeysManageAdd),
-                ("generate",  GetTranslation("plugin_quickssh_title_commandkeys_generate"), GetTranslation("plugin_quickssh_subtitle_commandkeys_generate"), AppIconGreenPath,  ScoreKeysManageGenerate),
-                ("scan",      GetTranslation("plugin_quickssh_title_commandkeys_scan"),     GetTranslation("plugin_quickssh_subtitle_commandkeys_scan"),     AppIconGreenPath,  ScoreKeysManageScan),
-                ("rename",    GetTranslation("plugin_quickssh_title_commandkeys_rename"),   GetTranslation("plugin_quickssh_subtitle_commandkeys_rename"),   AppIconOrangePath, ScoreKeysManageRename),
-                ("copy-path", GetTranslation("plugin_quickssh_title_commandkeys_copypath"), GetTranslation("plugin_quickssh_subtitle_commandkeys_copypath"), AppIconPath,       ScoreKeysManageCopyPath),
-                ("copy-pub",  GetTranslation("plugin_quickssh_title_commandkeys_copypub"),  GetTranslation("plugin_quickssh_subtitle_commandkeys_copypub"),  AppIconPath,       ScoreKeysManageCopyPub),
-                ("remove",    GetTranslation("plugin_quickssh_title_commandkeys_remove"),   GetTranslation("plugin_quickssh_subtitle_commandkeys_remove"),   AppIconRedPath,    ScoreKeysManageRemove),
+                ("add",       GetTranslation("plugin_quickssh_title_commandkeys_add"),      GetTranslation("plugin_quickssh_subtitle_commandkeys_add"),      KeyManageAddIconPath,        ScoreKeysManageAdd),
+                ("generate",  GetTranslation("plugin_quickssh_title_commandkeys_generate"), GetTranslation("plugin_quickssh_subtitle_commandkeys_generate"), KeyManageGenerateIconPath,   ScoreKeysManageGenerate),
+                ("scan",      GetTranslation("plugin_quickssh_title_commandkeys_scan"),     GetTranslation("plugin_quickssh_subtitle_commandkeys_scan"),     KeyManageScanIconPath,       ScoreKeysManageScan),
+                ("rename",    GetTranslation("plugin_quickssh_title_commandkeys_rename"),   GetTranslation("plugin_quickssh_subtitle_commandkeys_rename"),   KeyManageRenameIconPath,     ScoreKeysManageRename),
+                ("copy-path", GetTranslation("plugin_quickssh_title_commandkeys_copypath"), GetTranslation("plugin_quickssh_subtitle_commandkeys_copypath"), KeyManageCopyPathIconPath,   ScoreKeysManageCopyPath),
+                ("copy-pub",  GetTranslation("plugin_quickssh_title_commandkeys_copypub"),  GetTranslation("plugin_quickssh_subtitle_commandkeys_copypub"),  KeyManageCopyPublicIconPath, ScoreKeysManageCopyPub),
+                ("remove",    GetTranslation("plugin_quickssh_title_commandkeys_remove"),   GetTranslation("plugin_quickssh_subtitle_commandkeys_remove"),   KeyManageRemoveIconPath,     ScoreKeysManageRemove),
             };
 
             foreach (var (scName, scTitle, scSubTitle, iconPath, scScore) in keyActions)
@@ -3383,8 +3461,8 @@ namespace Flow.Launcher.Plugin.QuickSSH
                 results.Add(new Result
                 {
                     Title = alias,
-                    SubTitle = displayPath,
-                    IcoPath = AppIconRedPath,
+                    SubTitle = BuildKeyTypeSubtitle(entryValue),
+                    IcoPath = GetKeyOperationIconPath(entryValue, "remove"),
                     AutoCompleteText = query.ActionKeyword + " keys remove " + alias,
                     Action = _ =>
                     {
@@ -3436,8 +3514,8 @@ namespace Flow.Launcher.Plugin.QuickSSH
                     results.Add(new Result
                     {
                         Title = alias,
-                        SubTitle = entry.Value?.ToDisplayString() ?? "",
-                        IcoPath = GetSemanticIconPath("rename"),
+                        SubTitle = BuildKeyTypeSubtitle(entry.Value),
+                        IcoPath = GetKeyOperationIconPath(entry.Value, "rename"),
                         AutoCompleteText = autoText,
                         Action = _ =>
                         {

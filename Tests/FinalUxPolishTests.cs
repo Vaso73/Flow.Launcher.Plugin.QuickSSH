@@ -82,7 +82,8 @@ namespace Flow.Launcher.Plugin.QuickSSH.Tests
             var keys = ReadMethod(ReadMain(), "HandleKeysList", "HandleKeysManage");
             Assert.Contains("plugin_quickssh_keys_private_path_label", keys);
             Assert.Contains("plugin_quickssh_keys_public_path_label", keys);
-            Assert.Contains("EndsWith(\".pub\", StringComparison.OrdinalIgnoreCase)", keys);
+            Assert.Contains("ProfileWizard.GetKeyFileKind(keyEntry)", keys);
+            Assert.DoesNotContain("EndsWith(\".pub\", StringComparison.OrdinalIgnoreCase)", keys);
         }
 
         [Fact]

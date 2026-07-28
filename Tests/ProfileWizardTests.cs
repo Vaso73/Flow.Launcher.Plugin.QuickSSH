@@ -160,15 +160,20 @@ namespace Flow.Launcher.Plugin.QuickSSH.Tests
         public void IsUsablePrivateKey_ValidatesContentNotOnlyFileName()
         {
             var privatePath = Path.Combine(_tempDir, "private_key");
+            var privatePathWithPubSuffix = Path.Combine(_tempDir, "misleading_private.pub");
             var publicPathWithoutPubSuffix = Path.Combine(_tempDir, "public_key");
             var unknownPath = Path.Combine(_tempDir, "not_a_key");
             File.WriteAllText(privatePath, "-----BEGIN OPENSSH PRIVATE KEY-----\nAAAA");
+            File.WriteAllText(privatePathWithPubSuffix, "-----BEGIN OPENSSH PRIVATE KEY-----\nBBBB");
             File.WriteAllText(publicPathWithoutPubSuffix, "ssh-ed25519 AAAATEST user@host");
             File.WriteAllText(unknownPath, "plain text");
 
             Assert.Equal(
                 ProfileWizard.SshKeyFileKind.Private,
                 ProfileWizard.GetKeyFileKind(privatePath));
+            Assert.Equal(
+                ProfileWizard.SshKeyFileKind.Private,
+                ProfileWizard.GetKeyFileKind(privatePathWithPubSuffix));
             Assert.Equal(
                 ProfileWizard.SshKeyFileKind.Public,
                 ProfileWizard.GetKeyFileKind(publicPathWithoutPubSuffix));
