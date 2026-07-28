@@ -55,7 +55,11 @@ jobs:
           $repo = $env:REPOSITORY
           $sha = $env:SOURCE_SHA
           $runId = $env:CI_RUN_ID
-          $actualSha = (Invoke-NativeOutput git @('rev-parse', 'HEAD'))[0].Trim()
+          $actualSha = [string](Invoke-NativeOutput git @('rev-parse', 'HEAD') | Select-Object -First 1)
+          $actualSha = $actualSha.Trim()
+          if ($actualSha -notmatch '^[0-9a-f]{40}$') {
+            throw "git rev-parse HEAD returned an invalid SHA '$actualSha'."
+          }
           if ($actualSha -ne $sha) {
             throw "Checked out '$actualSha' instead of successful CI commit '$sha'."
           }
@@ -72,7 +76,7 @@ jobs:
             throw "Expected one merged Pull Request associated with '$sha'; found $($prs.Count)."
           }
 
-          $pr = $prs[0]
+          $pr = $prs | Select-Object -First 1
           $outcomeLabels = @(
             $pr.labels |
               ForEach-Object { [string]$_.name } |
@@ -82,16 +86,11 @@ jobs:
             throw "Merged Pull Request #$($pr.number) requires exactly one release outcome label; found: $($outcomeLabels -join ', ')."
           }
 
-          $label = $outcomeLabels[0]
-          $tags = @(Invoke-NativeOutput git @('tag', '--list', 'v[0-9]*', '--sort=-v:refname'))
-          $latestTag = @($tags | Where-Object { $_ -match '^v(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$' } | Select-Object -First 1)
-          if ($latestTag.Count -ne 1) {
-            throw 'Could not determine exactly one latest strict SemVer tag.'
-          }
-
-          $previousVersion = $latestTag[0].Substring(1)
-          $currentVersion = [string](Get-Content plugin.json -Raw | ConvertFrom-Json).Version
+          $label = [string]($outcomeLabels | Select-Object -First 1)
           . ./scripts/resolve-release-version.ps1
+          $tags = @(Invoke-NativeOutput git @('tag', '--list', 'v[0-9]*'))
+          $previousVersion = Get-QuickSshLatestTaggedVersion -Tags ([string[]]$tags)
+          $currentVersion = [string](Get-Content plugin.json -Raw | ConvertFrom-Json).Version
           $plan = Assert-QuickSshReleaseReady `
             -PreviousVersion $previousVersion `
             -ReleaseLabel $label `
@@ -209,7 +208,8 @@ jobs:
               throw 'Release ZIP contains a nested win-x64 directory.'
             }
 
-            $reader = [IO.StreamReader]::new($manifestEntries[0].Open())
+            $manifestEntry = $manifestEntries | Select-Object -First 1
+            $reader = [IO.StreamReader]::new($manifestEntry.Open())
             try {
               $manifest = $reader.ReadToEnd() | ConvertFrom-Json
             }
@@ -302,7 +302,8 @@ jobs:
               if ($entry.Count -ne 1) {
                 throw "Downloaded asset contains $($entry.Count) root plugin.json entries."
               }
-              $reader = [IO.StreamReader]::new($entry[0].Open())
+              $manifestEntry = $entry | Select-Object -First 1
+              $reader = [IO.StreamReader]::new($manifestEntry.Open())
               try {
                 $downloadedVersion = [string](($reader.ReadToEnd() | ConvertFrom-Json).Version)
               }
@@ -319,7 +320,15 @@ jobs:
             }
 
             $peeled = @(Invoke-Native git @('ls-remote', 'origin', "refs/tags/$tag^{}"))
-            $tagCommit = @($peeled | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })[0].Split("`t")[0]
+            $tagReference = [string](
+              $peeled |
+                Where-Object { -not [string]::IsNullOrWhiteSpace($_) } |
+                Select-Object -First 1
+            )
+            if ($tagReference -notmatch '^([0-9a-f]{40})\s+refs/tags/') {
+              throw "Remote tag '$tag' returned an invalid peeled reference '$tagReference'."
+            }
+            $tagCommit = [string]$Matches[1]
             if ($tagCommit -ne $sha) {
               throw "Remote tag '$tag' resolves to '$tagCommit' instead of '$sha'."
             }

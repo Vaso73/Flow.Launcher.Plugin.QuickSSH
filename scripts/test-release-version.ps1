@@ -40,6 +40,28 @@ function Assert-Throws {
     }
 }
 
+
+Assert-Equal `
+    -Actual (Get-QuickSshLatestTaggedVersion -Tags @('v3.6.0')) `
+    -Expected '3.6.0' `
+    -Name 'single tag remains a complete scalar value'
+
+Assert-Equal `
+    -Actual (Get-QuickSshLatestTaggedVersion -Tags @('v3.7.2', 'v4.0.0', 'v3.10.0')) `
+    -Expected '4.0.0' `
+    -Name 'latest tag uses semantic ordering'
+
+Assert-Equal `
+    -Actual (Get-QuickSshLatestTaggedVersion -Tags @('preview', 'v3.6.1-beta', 'v3.6.0')) `
+    -Expected '3.6.0' `
+    -Name 'non-strict tags are ignored'
+
+Assert-Throws `
+    -Name 'no strict SemVer tag' `
+    -Action {
+        Get-QuickSshLatestTaggedVersion -Tags @('preview', 'v3.6.1-beta')
+    }
+
 Assert-Equal `
     -Actual (Get-QuickSshNextVersion -PreviousVersion '3.6.0' -ReleaseLabel 'release:patch') `
     -Expected '3.6.1' `

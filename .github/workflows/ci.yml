@@ -103,18 +103,14 @@ jobs:
             throw "Pull Request #$prNumber requires exactly one release outcome label; found: $($outcomeLabels -join ', ')."
           }
 
-          $tags = @(Invoke-NativeOutput git @('tag', '--list', 'v[0-9]*', '--sort=-v:refname'))
-          $latestTag = @($tags | Where-Object { $_ -match '^v(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$' } | Select-Object -First 1)
-          if ($latestTag.Count -ne 1) {
-            throw 'Could not determine exactly one latest strict SemVer tag.'
-          }
-
-          $previousVersion = $latestTag[0].Substring(1)
-          $currentVersion = [string](Get-Content plugin.json -Raw | ConvertFrom-Json).Version
           . ./scripts/resolve-release-version.ps1
+          $tags = @(Invoke-NativeOutput git @('tag', '--list', 'v[0-9]*'))
+          $previousVersion = Get-QuickSshLatestTaggedVersion -Tags ([string[]]$tags)
+          $currentVersion = [string](Get-Content plugin.json -Raw | ConvertFrom-Json).Version
+          $releaseLabel = [string]($outcomeLabels | Select-Object -First 1)
           $plan = Assert-QuickSshReleaseReady `
             -PreviousVersion $previousVersion `
-            -ReleaseLabel $outcomeLabels[0] `
+            -ReleaseLabel $releaseLabel `
             -CurrentVersion $currentVersion
 
           Write-Host "PR_NUMBER=$prNumber"

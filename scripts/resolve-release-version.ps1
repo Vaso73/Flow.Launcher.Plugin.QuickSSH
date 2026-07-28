@@ -29,6 +29,46 @@ function ConvertTo-QuickSshVersion {
     }
 }
 
+
+function Get-QuickSshLatestTaggedVersion {
+    param(
+        [Parameter(Mandatory = $true)]
+        [AllowEmptyCollection()]
+        [string[]]$Tags
+    )
+
+    $candidates = @(
+        foreach ($tagValue in $Tags) {
+            $tag = [string]$tagValue
+            if ($tag -match '^v(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$') {
+                $major = [int]$Matches[1]
+                $minor = [int]$Matches[2]
+                $patch = [int]$Matches[3]
+
+                [pscustomobject]@{
+                    Tag = $tag
+                    Version = [version]::new($major, $minor, $patch)
+                }
+            }
+        }
+    )
+
+    if ($candidates.Count -eq 0) {
+        throw 'Could not determine a latest strict SemVer tag.'
+    }
+
+    $latest = $candidates |
+        Sort-Object -Property Version -Descending |
+        Select-Object -First 1
+
+    $latestTag = [string]$latest.Tag
+    if ([string]::IsNullOrWhiteSpace($latestTag)) {
+        throw 'Latest strict SemVer tag resolved to an empty value.'
+    }
+
+    return $latestTag.Substring(1)
+}
+
 function Get-QuickSshNextVersion {
     param(
         [Parameter(Mandatory = $true)]
