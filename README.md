@@ -145,6 +145,8 @@ Action names can be added, renamed, and removed under **Manage actions**. Action
 
 QuickSSH stores key aliases and file metadata, never private-key content.
 
+Saved key lists identify private and public keys from file content using distinct icons and text labels. Rename and remove views preserve the key type while adding an operation-specific indicator. Missing or unrecognized key files are shown as a fail-closed error state.
+
 Available operations include:
 
 - register an existing private key,

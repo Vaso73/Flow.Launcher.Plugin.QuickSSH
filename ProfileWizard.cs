@@ -271,7 +271,7 @@ namespace Flow.Launcher.Plugin.QuickSSH
 
         /// <summary>
         /// Classifies a registered SSH key by its file content.
-        /// This catches public keys even when their file name does not end in .pub.
+        /// File names and extensions never override the detected content type.
         /// Unknown files fail closed and are never offered as connection identities.
         /// </summary>
         internal static SshKeyFileKind GetKeyFileKind(SshKeyEntry? entry)
@@ -287,9 +287,6 @@ namespace Flow.Launcher.Plugin.QuickSSH
             var expandedPath = ExpandLocalPath(path);
             if (!File.Exists(expandedPath))
                 return SshKeyFileKind.Missing;
-
-            if (expandedPath.EndsWith(".pub", StringComparison.OrdinalIgnoreCase))
-                return SshKeyFileKind.Public;
 
             try
             {
