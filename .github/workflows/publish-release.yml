@@ -1,12 +1,14 @@
 name: Publish Release
 
 on:
-  pull_request_target:
-    types: [closed]
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
 
 permissions:
   contents: write
   pull-requests: read
+  actions: read
 
 concurrency:
   group: publish-release-main
@@ -15,90 +17,350 @@ concurrency:
 jobs:
   publish:
     if: >
-      github.event.pull_request.merged == true &&
-      github.event.pull_request.base.ref == 'main' &&
-      !contains(join(github.event.pull_request.labels.*.name, ','), 'skip-release')
+      github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.event == 'push' &&
+      github.event.workflow_run.head_branch == 'main' &&
+      github.event.workflow_run.head_repository.full_name == github.repository
     runs-on: windows-latest
 
     steps:
-      - name: Checkout main
+      - name: Checkout exact successful CI commit
         uses: actions/checkout@v6
         with:
-          ref: main
+          ref: ${{ github.event.workflow_run.head_sha }}
           fetch-depth: 0
+          persist-credentials: true
 
-      - name: Validate release labels
-        shell: pwsh
-        run: |
-          $event = Get-Content $env:GITHUB_EVENT_PATH | ConvertFrom-Json
-          $labels = @($event.pull_request.labels | ForEach-Object { $_.name })
-
-          $releaseLabels = @($labels | Where-Object { $_ -in @("release:patch", "release:minor", "release:major") })
-
-          if ($releaseLabels.Count -eq 0) {
-            Write-Error "No release label found. Add exactly one of: release:patch, release:minor, release:major"
-            exit 1
-          }
-
-          if ($releaseLabels.Count -gt 1) {
-            Write-Error "Multiple conflicting release labels found: $($releaseLabels -join ', '). Only one is allowed."
-            exit 1
-          }
-
-          Write-Host "Release label: $($releaseLabels[0])"
-
-      - name: Read version from plugin.json
+      - name: Resolve merged Pull Request and release plan
         id: meta
         shell: pwsh
-        run: |
-          $manifest = Get-Content "plugin.json" | ConvertFrom-Json
-          $version = $manifest.Version
-          if ([string]::IsNullOrWhiteSpace($version)) {
-            Write-Error "Version not found in plugin.json"
-            exit 1
-          }
-          "version=$version" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
-          "tag=v$version" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
-          Write-Host "Version: $version"
-
-      - name: Setup .NET
-        uses: actions/setup-dotnet@v5
-        with:
-          dotnet-version: '9.0.x'
-
-      - name: Build plugin
-        shell: pwsh
-        run: |
-          dotnet publish "Flow.Launcher.Plugin.QuickSSH.csproj" `
-            -c Release `
-            -r win-x64 `
-            --no-self-contained `
-            -o "QuickSSH"
-
-      - name: Create ZIP
-        shell: pwsh
-        run: |
-          if (Test-Path "QuickSSH.zip") {
-            Remove-Item "QuickSSH.zip" -Force
-          }
-
-          7z a -tzip "QuickSSH.zip" ".\QuickSSH\*"
-
-      - name: Create tag
-        shell: pwsh
-        run: |
-          git tag "${{ steps.meta.outputs.tag }}"
-          git push origin "${{ steps.meta.outputs.tag }}"
-
-      - name: Create GitHub Release
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: ${{ steps.meta.outputs.tag }}
-          name: Release ${{ steps.meta.outputs.tag }}
-          files: QuickSSH.zip
-          fail_on_unmatched_files: true
-          draft: false
-          prerelease: false
-          generate_release_notes: true
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ github.token }}
+          REPOSITORY: ${{ github.repository }}
+          SOURCE_SHA: ${{ github.event.workflow_run.head_sha }}
+          CI_RUN_ID: ${{ github.event.workflow_run.id }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          Set-StrictMode -Version Latest
+
+          function Invoke-NativeOutput {
+            param([string]$File, [string[]]$Arguments)
+            $output = @(& $File @Arguments 2>&1)
+            if ($LASTEXITCODE -ne 0) {
+              throw "$File $($Arguments -join ' ') failed with exit code $LASTEXITCODE.`n$($output -join [Environment]::NewLine)"
+            }
+            return $output
+          }
+
+          $repo = $env:REPOSITORY
+          $sha = $env:SOURCE_SHA
+          $runId = $env:CI_RUN_ID
+          $actualSha = (Invoke-NativeOutput git @('rev-parse', 'HEAD'))[0].Trim()
+          if ($actualSha -ne $sha) {
+            throw "Checked out '$actualSha' instead of successful CI commit '$sha'."
+          }
+
+          $prs = @(
+            ((Invoke-NativeOutput gh @(
+              'api',
+              '-H', 'Accept: application/vnd.github+json',
+              "repos/$repo/commits/$sha/pulls"
+            )) -join "`n" | ConvertFrom-Json) |
+              Where-Object { $_.merged_at -and $_.base.ref -eq 'main' }
+          )
+          if ($prs.Count -ne 1) {
+            throw "Expected one merged Pull Request associated with '$sha'; found $($prs.Count)."
+          }
+
+          $pr = $prs[0]
+          $outcomeLabels = @(
+            $pr.labels |
+              ForEach-Object { [string]$_.name } |
+              Where-Object { $_ -in @('release:patch', 'release:minor', 'release:major', 'skip-release') }
+          )
+          if ($outcomeLabels.Count -ne 1) {
+            throw "Merged Pull Request #$($pr.number) requires exactly one release outcome label; found: $($outcomeLabels -join ', ')."
+          }
+
+          $label = $outcomeLabels[0]
+          $tags = @(Invoke-NativeOutput git @('tag', '--list', 'v[0-9]*', '--sort=-v:refname'))
+          $latestTag = @($tags | Where-Object { $_ -match '^v(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$' } | Select-Object -First 1)
+          if ($latestTag.Count -ne 1) {
+            throw 'Could not determine exactly one latest strict SemVer tag.'
+          }
+
+          $previousVersion = $latestTag[0].Substring(1)
+          $currentVersion = [string](Get-Content plugin.json -Raw | ConvertFrom-Json).Version
+          . ./scripts/resolve-release-version.ps1
+          $plan = Assert-QuickSshReleaseReady `
+            -PreviousVersion $previousVersion `
+            -ReleaseLabel $label `
+            -CurrentVersion $currentVersion
+
+          "pr_number=$($pr.number)" | Out-File $env:GITHUB_OUTPUT -Encoding utf8 -Append
+          "release_label=$label" | Out-File $env:GITHUB_OUTPUT -Encoding utf8 -Append
+          "previous_version=$previousVersion" | Out-File $env:GITHUB_OUTPUT -Encoding utf8 -Append
+          "version=$currentVersion" | Out-File $env:GITHUB_OUTPUT -Encoding utf8 -Append
+          "tag=$($plan.Tag)" | Out-File $env:GITHUB_OUTPUT -Encoding utf8 -Append
+          "skip=$($plan.SkipRelease.ToString().ToLowerInvariant())" | Out-File $env:GITHUB_OUTPUT -Encoding utf8 -Append
+          "source_sha=$sha" | Out-File $env:GITHUB_OUTPUT -Encoding utf8 -Append
+          "ci_run_id=$runId" | Out-File $env:GITHUB_OUTPUT -Encoding utf8 -Append
+
+          @(
+            '## Release plan'
+            ''
+            "- Pull Request: #$($pr.number)"
+            "- Release intent: ``$label``"
+            "- Previous version: ``$previousVersion``"
+            "- Source version: ``$currentVersion``"
+            "- Source commit: ``$sha``"
+          ) | Add-Content $env:GITHUB_STEP_SUMMARY
+
+      - name: Record skipped release
+        if: steps.meta.outputs.skip == 'true'
+        shell: pwsh
+        run: |
+          @(
+            ''
+            'Release publishing was intentionally skipped by the merged Pull Request label.'
+          ) | Add-Content $env:GITHUB_STEP_SUMMARY
+
+      - name: Verify target tag and release are absent
+        if: steps.meta.outputs.skip != 'true'
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPOSITORY: ${{ github.repository }}
+          RELEASE_TAG: ${{ steps.meta.outputs.tag }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $tag = $env:RELEASE_TAG
+          $repo = $env:REPOSITORY
+
+          $remoteTag = @(& git ls-remote origin "refs/tags/$tag" 2>&1)
+          if ($LASTEXITCODE -ne 0) {
+            throw "git ls-remote failed with exit code $LASTEXITCODE.`n$($remoteTag -join [Environment]::NewLine)"
+          }
+          if (@($remoteTag | Where-Object { -not [string]::IsNullOrWhiteSpace($_) }).Count -ne 0) {
+            throw "Target tag '$tag' already exists."
+          }
+
+          $releaseTags = @(& gh api --paginate "repos/$repo/releases?per_page=100" --jq '.[].tag_name' 2>&1)
+          if ($LASTEXITCODE -ne 0) {
+            throw "gh api release listing failed with exit code $LASTEXITCODE.`n$($releaseTags -join [Environment]::NewLine)"
+          }
+          $releaseTags = @($releaseTags | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
+          if ($releaseTags -contains $tag) {
+            throw "Target GitHub release '$tag' already exists."
+          }
+
+      - name: Download exact successful publish output
+        if: steps.meta.outputs.skip != 'true'
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPOSITORY: ${{ github.repository }}
+          SOURCE_SHA: ${{ steps.meta.outputs.source_sha }}
+          CI_RUN_ID: ${{ steps.meta.outputs.ci_run_id }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $artifact = "quickssh-publish-$($env:SOURCE_SHA)"
+          & gh run download $env:CI_RUN_ID `
+            --repo $env:REPOSITORY `
+            --name $artifact `
+            --dir release-build
+          if ($LASTEXITCODE -ne 0) {
+            throw "Could not download CI artifact '$artifact'."
+          }
+          if (-not (Test-Path 'release-build/plugin.json')) {
+            throw 'Downloaded publish output does not contain plugin.json at its root.'
+          }
+
+      - name: Build and validate release ZIP
+        if: steps.meta.outputs.skip != 'true'
+        id: package
+        shell: pwsh
+        env:
+          EXPECTED_VERSION: ${{ steps.meta.outputs.version }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          Add-Type -AssemblyName System.IO.Compression.FileSystem
+
+          $source = (Resolve-Path 'release-build').Path
+          $zip = Join-Path $PWD 'QuickSSH.zip'
+          if (Test-Path $zip) {
+            Remove-Item $zip -Force
+          }
+
+          [System.IO.Compression.ZipFile]::CreateFromDirectory(
+            $source,
+            $zip,
+            [System.IO.Compression.CompressionLevel]::Optimal,
+            $false
+          )
+
+          $archive = [System.IO.Compression.ZipFile]::OpenRead($zip)
+          try {
+            $manifestEntries = @($archive.Entries | Where-Object { $_.FullName -eq 'plugin.json' })
+            if ($manifestEntries.Count -ne 1) {
+              throw "Expected exactly one root plugin.json; found $($manifestEntries.Count)."
+            }
+            if (@($archive.Entries | Where-Object { $_.FullName -match '(^|/)win-x64/' }).Count -ne 0) {
+              throw 'Release ZIP contains a nested win-x64 directory.'
+            }
+
+            $reader = [IO.StreamReader]::new($manifestEntries[0].Open())
+            try {
+              $manifest = $reader.ReadToEnd() | ConvertFrom-Json
+            }
+            finally {
+              $reader.Dispose()
+            }
+          }
+          finally {
+            $archive.Dispose()
+          }
+
+          $expectedVersion = $env:EXPECTED_VERSION
+          if ([string]$manifest.Version -ne $expectedVersion) {
+            throw "ZIP manifest version '$($manifest.Version)' does not match '$expectedVersion'."
+          }
+
+          $hash = (Get-FileHash $zip -Algorithm SHA256).Hash.ToLowerInvariant()
+          "sha256=$hash" | Out-File $env:GITHUB_OUTPUT -Encoding utf8 -Append
+          Write-Host "QUICKSSH_ZIP_SHA256=$hash"
+
+      - name: Create, verify, and publish immutable release candidate
+        if: steps.meta.outputs.skip != 'true'
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPOSITORY: ${{ github.repository }}
+          RELEASE_TAG: ${{ steps.meta.outputs.tag }}
+          SOURCE_SHA: ${{ steps.meta.outputs.source_sha }}
+          RELEASE_VERSION: ${{ steps.meta.outputs.version }}
+          EXPECTED_SHA256: ${{ steps.package.outputs.sha256 }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          Set-StrictMode -Version Latest
+          Add-Type -AssemblyName System.IO.Compression.FileSystem
+
+          function Invoke-Native {
+            param([string]$File, [string[]]$Arguments)
+            $output = @(& $File @Arguments 2>&1)
+            if ($LASTEXITCODE -ne 0) {
+              throw "$File $($Arguments -join ' ') failed with exit code $LASTEXITCODE.`n$($output -join [Environment]::NewLine)"
+            }
+            return $output
+          }
+
+          $repo = $env:REPOSITORY
+          $tag = $env:RELEASE_TAG
+          $sha = $env:SOURCE_SHA
+          $version = $env:RELEASE_VERSION
+          $expectedHash = $env:EXPECTED_SHA256
+          $tagPushed = $false
+          $draftCreated = $false
+          $published = $false
+
+          try {
+            $null = Invoke-Native git @('config', 'user.name', 'github-actions[bot]')
+            $null = Invoke-Native git @('config', 'user.email', '41898282+github-actions[bot]@users.noreply.github.com')
+            $null = Invoke-Native git @('tag', '-a', $tag, $sha, '-m', "Release $tag")
+            $null = Invoke-Native git @('push', 'origin', "refs/tags/$tag")
+            $tagPushed = $true
+
+            $null = Invoke-Native gh @(
+              'release', 'create', $tag, 'QuickSSH.zip#QuickSSH.zip',
+              '--repo', $repo,
+              '--verify-tag',
+              '--draft',
+              '--title', "Release $tag",
+              '--generate-notes'
+            )
+            $draftCreated = $true
+
+            $verifyDir = Join-Path $env:RUNNER_TEMP 'quickssh-release-verification'
+            Remove-Item $verifyDir -Recurse -Force -ErrorAction SilentlyContinue
+            New-Item $verifyDir -ItemType Directory -Force | Out-Null
+            $null = Invoke-Native gh @(
+              'release', 'download', $tag,
+              '--repo', $repo,
+              '--pattern', 'QuickSSH.zip',
+              '--dir', $verifyDir
+            )
+
+            $downloadedZip = Join-Path $verifyDir 'QuickSSH.zip'
+            $downloadedHash = (Get-FileHash $downloadedZip -Algorithm SHA256).Hash.ToLowerInvariant()
+            if ($downloadedHash -ne $expectedHash) {
+              throw "Published draft asset hash '$downloadedHash' does not match '$expectedHash'."
+            }
+
+            $archive = [System.IO.Compression.ZipFile]::OpenRead($downloadedZip)
+            try {
+              $entry = @($archive.Entries | Where-Object { $_.FullName -eq 'plugin.json' })
+              if ($entry.Count -ne 1) {
+                throw "Downloaded asset contains $($entry.Count) root plugin.json entries."
+              }
+              $reader = [IO.StreamReader]::new($entry[0].Open())
+              try {
+                $downloadedVersion = [string](($reader.ReadToEnd() | ConvertFrom-Json).Version)
+              }
+              finally {
+                $reader.Dispose()
+              }
+            }
+            finally {
+              $archive.Dispose()
+            }
+
+            if ($downloadedVersion -ne $version) {
+              throw "Downloaded asset version '$downloadedVersion' does not match '$version'."
+            }
+
+            $peeled = @(Invoke-Native git @('ls-remote', 'origin', "refs/tags/$tag^{}"))
+            $tagCommit = @($peeled | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })[0].Split("`t")[0]
+            if ($tagCommit -ne $sha) {
+              throw "Remote tag '$tag' resolves to '$tagCommit' instead of '$sha'."
+            }
+
+            $null = Invoke-Native gh @(
+              'release', 'edit', $tag,
+              '--repo', $repo,
+              '--draft=false',
+              '--latest'
+            )
+            $published = $true
+
+            @(
+              ''
+              '## Published release'
+              ''
+              "- Tag: ``$tag``"
+              "- Source commit: ``$sha``"
+              "- QuickSSH.zip SHA-256: ``$expectedHash``"
+              '- Draft asset verification: PASS'
+              '- Embedded version verification: PASS'
+              '- Tag/source verification: PASS'
+              '- Release state: published and latest'
+            ) | Add-Content $env:GITHUB_STEP_SUMMARY
+          }
+          catch {
+            $failure = $_
+            if (-not $published) {
+              if ($draftCreated) {
+                & gh release delete $tag --repo $repo --cleanup-tag --yes 2>&1 | Write-Warning
+                if ($LASTEXITCODE -ne 0) {
+                  Write-Warning "Draft release rollback failed with exit code $LASTEXITCODE."
+                }
+              }
+              elseif ($tagPushed) {
+                & git push origin ":refs/tags/$tag" 2>&1 | Write-Warning
+                if ($LASTEXITCODE -ne 0) {
+                  Write-Warning "Remote tag rollback failed with exit code $LASTEXITCODE."
+                }
+              }
+              & git tag -d $tag 2>&1 | Out-Null
+            }
+            throw $failure
+          }

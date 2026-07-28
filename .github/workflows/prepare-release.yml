@@ -1,0 +1,154 @@
+name: Prepare Release Version
+
+on:
+  pull_request_target:
+    types: [opened, reopened, synchronize, labeled, unlabeled]
+
+permissions:
+  contents: write
+  pull-requests: read
+  actions: write
+
+concurrency:
+  group: prepare-release-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  prepare:
+    if: >
+      github.event.pull_request.base.ref == 'main' &&
+      github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout trusted release helper from main
+        uses: actions/checkout@v6
+        with:
+          ref: main
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Prepare exact version and dispatch CI when changed
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPOSITORY: ${{ github.repository }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          Set-StrictMode -Version Latest
+
+          function Invoke-NativeOutput {
+            param([string]$File, [string[]]$Arguments)
+            $output = @(& $File @Arguments 2>&1)
+            if ($LASTEXITCODE -ne 0) {
+              throw "$File $($Arguments -join ' ') failed with exit code $LASTEXITCODE.`n$($output -join [Environment]::NewLine)"
+            }
+            return $output
+          }
+
+          $event = Get-Content $env:GITHUB_EVENT_PATH -Raw | ConvertFrom-Json
+          $repo = $env:REPOSITORY
+          $prNumber = [string]$event.pull_request.number
+          $headRef = [string]$event.pull_request.head.ref
+          $eventHeadSha = [string]$event.pull_request.head.sha
+          $outcomeLabels = @(
+            $event.pull_request.labels |
+              ForEach-Object { [string]$_.name } |
+              Where-Object { $_ -in @('release:patch', 'release:minor', 'release:major', 'skip-release') }
+          )
+
+          if ($outcomeLabels.Count -ne 1) {
+            throw "Pull Request #$prNumber requires exactly one release outcome label; found: $($outcomeLabels -join ', ')."
+          }
+
+          $label = $outcomeLabels[0]
+          if ($label -eq 'skip-release') {
+            @(
+              '## Release preparation'
+              ''
+              "Pull Request #$prNumber uses ``skip-release``. No version commit or release dispatch was created."
+            ) | Add-Content $env:GITHUB_STEP_SUMMARY
+            exit 0
+          }
+
+          $currentPr = (Invoke-NativeOutput gh @('api', "repos/$repo/pulls/$prNumber")) -join "`n" | ConvertFrom-Json
+          if ([string]$currentPr.head.sha -ne $eventHeadSha) {
+            throw "Pull Request head changed from '$eventHeadSha' to '$($currentPr.head.sha)' while release preparation was starting."
+          }
+
+          $tags = @(Invoke-NativeOutput git @('tag', '--list', 'v[0-9]*', '--sort=-v:refname'))
+          $latestTag = @($tags | Where-Object { $_ -match '^v(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$' } | Select-Object -First 1)
+          if ($latestTag.Count -ne 1) {
+            throw 'Could not determine exactly one latest strict SemVer tag.'
+          }
+
+          $previousVersion = $latestTag[0].Substring(1)
+          . ./scripts/resolve-release-version.ps1
+          $expectedVersion = Get-QuickSshNextVersion `
+            -PreviousVersion $previousVersion `
+            -ReleaseLabel $label
+
+          $file = (Invoke-NativeOutput gh @('api', "repos/$repo/contents/plugin.json?ref=$eventHeadSha")) -join "`n" | ConvertFrom-Json
+          $raw = [Text.Encoding]::UTF8.GetString([Convert]::FromBase64String(([string]$file.content -replace '\s', '')))
+          $manifest = $raw | ConvertFrom-Json
+          $currentVersion = [string]$manifest.Version
+
+          if ($currentVersion -eq $expectedVersion) {
+            @(
+              '## Release preparation'
+              ''
+              "Pull Request #$prNumber is already prepared for ``$label`` as version ``$expectedVersion``."
+            ) | Add-Content $env:GITHUB_STEP_SUMMARY
+            exit 0
+          }
+
+          if ($currentVersion -ne $previousVersion) {
+            throw "plugin.json contains '$currentVersion'. Expected either current release '$previousVersion' or prepared release '$expectedVersion'."
+          }
+
+          $pattern = '"Version"\s*:\s*"' + [regex]::Escape($previousVersion) + '"'
+          $matches = [regex]::Matches($raw, $pattern)
+          if ($matches.Count -ne 1) {
+            throw "Expected exactly one plugin Version field for '$previousVersion'; found $($matches.Count)."
+          }
+
+          $updated = [regex]::Replace(
+            $raw,
+            $pattern,
+            '"Version": "' + $expectedVersion + '"',
+            1
+          )
+          $encoded = [Convert]::ToBase64String([Text.UTF8Encoding]::new($false).GetBytes($updated))
+
+          $update = (Invoke-NativeOutput gh @(
+            'api',
+            '--method', 'PUT',
+            "repos/$repo/contents/plugin.json",
+            '-f', "message=chore: bump version to $expectedVersion",
+            '-f', "content=$encoded",
+            '-f', "branch=$headRef",
+            '-f', "sha=$($file.sha)"
+          )) -join "`n" | ConvertFrom-Json
+
+          $newSha = [string]$update.commit.sha
+          if ($newSha -notmatch '^[0-9a-f]{40}$') {
+            throw "GitHub did not return a valid version-bump commit SHA: '$newSha'."
+          }
+
+          $null = Invoke-NativeOutput gh @(
+            'workflow', 'run', 'ci.yml',
+            '--ref', $headRef,
+            '-f', "expected_sha=$newSha",
+            '-f', "pr_number=$prNumber"
+          )
+
+          @(
+            '## Release preparation'
+            ''
+            "- Pull Request: #$prNumber"
+            "- Release intent: ``$label``"
+            "- Previous version: ``$previousVersion``"
+            "- Prepared version: ``$expectedVersion``"
+            "- Version commit: ``$newSha``"
+            '- Exact-SHA CI dispatch: requested'
+          ) | Add-Content $env:GITHUB_STEP_SUMMARY

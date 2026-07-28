@@ -323,6 +323,12 @@ Restart Flow Launcher so it reloads the plugin assets.
 
 Issues and pull requests are welcome. User-facing behavior changes should include corresponding public README updates.
 
+### Release automation
+
+Every Pull Request must carry exactly one release outcome label: `release:patch`, `release:minor`, `release:major`, or `skip-release`. For same-repository PRs, the release preparation workflow derives the exact next strict SemVer version from the latest tag and updates only `plugin.json` when a release bump is required.
+
+The `build` check is required on the current PR SHA. After a release PR is merged, a successful CI run on the exact `main` commit supplies the publish output to the release workflow. Publishing stops before creating anything when the version does not match the label or when the target tag or release already exists. A new release is first created as a draft, its ZIP hash, embedded manifest version, and tag-to-source binding are verified, and only then is it published as the latest release. Existing release assets are never clobbered.
+
 ## License
 
 QuickSSH is released under the [MIT License](LICENSE).
