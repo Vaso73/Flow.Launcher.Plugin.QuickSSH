@@ -4,7 +4,7 @@
     "Name": "QuickSSH",
     "Description": "Manage SSH profiles, reusable remote actions, SSH keys, config imports, and custom shells from Flow Launcher",
     "Author": "Vaso73",
-    "Version": "3.6.0",
+    "Version": "3.6.1",
     "Language": "csharp",
     "Website": "https://github.com/Vaso73/Flow.Launcher.Plugin.QuickSSH",
     "IcoPath": "Images\\app.png",

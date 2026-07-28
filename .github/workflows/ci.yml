@@ -5,9 +5,20 @@ on:
     branches: [main]
   push:
     branches: [main]
+  workflow_dispatch:
+    inputs:
+      expected_sha:
+        description: Exact same-repository PR head SHA prepared by release automation
+        required: true
+        type: string
+      pr_number:
+        description: Pull Request number associated with expected_sha
+        required: true
+        type: string
 
 permissions:
   contents: read
+  pull-requests: read
 
 concurrency:
   group: ci-${{ github.ref }}
@@ -18,12 +29,131 @@ jobs:
     runs-on: windows-latest
 
     steps:
-      - name: Checkout
+      - name: Checkout exact source
         uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.expected_sha || github.sha }}
+          fetch-depth: 0
+
+      - name: Verify checkout identity
+        shell: pwsh
+        env:
+          EXPECTED_SHA: ${{ github.event_name == 'workflow_dispatch' && inputs.expected_sha || github.sha }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $expected = $env:EXPECTED_SHA
+
+          $actual = (& git rev-parse HEAD).Trim()
+          if ($LASTEXITCODE -ne 0) {
+            throw "git rev-parse HEAD failed with exit code $LASTEXITCODE."
+          }
+
+          if ($actual -ne $expected) {
+            throw "Checked out '$actual' instead of expected '$expected'."
+          }
+
+          Write-Host "CHECKED_OUT_SHA=$actual"
+
+      - name: Validate PR release intent and version
+        if: github.event_name != 'push'
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPOSITORY: ${{ github.repository }}
+          EVENT_NAME: ${{ github.event_name }}
+          PR_NUMBER: ${{ github.event_name == 'workflow_dispatch' && inputs.pr_number || github.event.pull_request.number }}
+          EXPECTED_SHA: ${{ github.event_name == 'workflow_dispatch' && inputs.expected_sha || github.event.pull_request.head.sha }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          Set-StrictMode -Version Latest
+
+          function Invoke-NativeOutput {
+            param([string]$File, [string[]]$Arguments)
+            $output = @(& $File @Arguments 2>&1)
+            if ($LASTEXITCODE -ne 0) {
+              throw "$File $($Arguments -join ' ') failed with exit code $LASTEXITCODE.`n$($output -join [Environment]::NewLine)"
+            }
+            return $output
+          }
+
+          $repo = $env:REPOSITORY
+          $prNumber = $env:PR_NUMBER
+
+          if ($prNumber -notmatch '^[1-9][0-9]*$') {
+            throw "Invalid Pull Request number '$prNumber'."
+          }
+
+          $pr = (Invoke-NativeOutput gh @('api', "repos/$repo/pulls/$prNumber")) -join "`n" | ConvertFrom-Json
+          if ($pr.base.ref -ne 'main') {
+            throw "Pull Request #$prNumber does not target main."
+          }
+
+          if ($env:EVENT_NAME -eq 'workflow_dispatch' -and
+              [string]$pr.head.sha -ne $env:EXPECTED_SHA) {
+            throw "Pull Request head '$($pr.head.sha)' does not match dispatched SHA '$($env:EXPECTED_SHA)'."
+          }
+
+          $outcomeLabels = @(
+            $pr.labels |
+              ForEach-Object { [string]$_.name } |
+              Where-Object { $_ -in @('release:patch', 'release:minor', 'release:major', 'skip-release') }
+          )
+
+          if ($outcomeLabels.Count -ne 1) {
+            throw "Pull Request #$prNumber requires exactly one release outcome label; found: $($outcomeLabels -join ', ')."
+          }
+
+          . ./scripts/resolve-release-version.ps1
+          $tags = @(Invoke-NativeOutput git @('tag', '--list', 'v[0-9]*'))
+          $previousVersion = Get-QuickSshLatestTaggedVersion -Tags ([string[]]$tags)
+          $currentVersion = [string](Get-Content plugin.json -Raw | ConvertFrom-Json).Version
+          $releaseLabel = [string]($outcomeLabels | Select-Object -First 1)
+          $plan = Assert-QuickSshReleaseReady `
+            -PreviousVersion $previousVersion `
+            -ReleaseLabel $releaseLabel `
+            -CurrentVersion $currentVersion
+
+          Write-Host "PR_NUMBER=$prNumber"
+          Write-Host "RELEASE_LABEL=$($plan.ReleaseLabel)"
+          Write-Host "PREVIOUS_VERSION=$($plan.PreviousVersion)"
+          Write-Host "CURRENT_VERSION=$($plan.CurrentVersion)"
 
       - name: Docs check
         shell: pwsh
-        run: ./scripts/check-docs.ps1
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPOSITORY: ${{ github.repository }}
+          EVENT_NAME: ${{ github.event_name }}
+          PR_NUMBER: ${{ github.event_name == 'workflow_dispatch' && inputs.pr_number || github.event.pull_request.number }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+
+          if ($env:EVENT_NAME -eq 'workflow_dispatch') {
+            $repo = $env:REPOSITORY
+            $prNumber = $env:PR_NUMBER
+            $prJson = @(& gh api "repos/$repo/pulls/$prNumber" 2>&1)
+            if ($LASTEXITCODE -ne 0) {
+              throw "Could not load Pull Request #$prNumber.`n$($prJson -join [Environment]::NewLine)"
+            }
+
+            $pr = ($prJson -join "`n") | ConvertFrom-Json
+            $synthetic = @{
+              pull_request = @{
+                base = @{ sha = [string]$pr.base.sha }
+                head = @{ sha = [string]$pr.head.sha }
+              }
+            }
+            $syntheticPath = Join-Path $env:RUNNER_TEMP 'quickssh-dispatched-pr-event.json'
+            $synthetic | ConvertTo-Json -Depth 6 | Set-Content $syntheticPath -Encoding utf8
+            $env:GITHUB_EVENT_NAME = 'pull_request'
+            $env:GITHUB_EVENT_PATH = $syntheticPath
+          }
+
+          ./scripts/check-docs.ps1
+
+      - name: Release automation tests
+        shell: pwsh
+        run: ./scripts/test-release-version.ps1
 
       - name: Setup .NET
         uses: actions/setup-dotnet@v5
@@ -50,3 +180,12 @@ jobs:
             -r win-x64 `
             --no-self-contained `
             -o "ci-build"
+
+      - name: Upload exact publish output
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: actions/upload-artifact@v4
+        with:
+          name: quickssh-publish-${{ github.sha }}
+          path: ci-build
+          if-no-files-found: error
+          retention-days: 7
